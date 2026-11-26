@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.PatientsPage"
+             x:DataType="vm:PatientsViewModel"
+             Title="Patients">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Register patient" Command="{Binding RegisterCommand}" />
+    </ContentPage.ToolbarItems>
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="20,12" RowSpacing="8" MaximumWidthRequest="860">
+        <SearchBar Text="{Binding Query}" Placeholder="Name, phone, MRN or CNIC — works offline" SemanticProperties.Description="Search patients" />
+        <Label Grid.Row="1" Text="{Binding Summary}" Style="{StaticResource Muted}" />
+        <Label Grid.Row="2" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+        <CollectionView Grid.Row="3" ItemsSource="{Binding Patients}" SelectionMode="None">
+            <CollectionView.EmptyView>
+                <Label Text="No patients found." Style="{StaticResource Muted}" HorizontalOptions="Center" Margin="0,40" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:PatientRow">
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,8" Padding="14,10">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PatientsViewModel}}, Path=OpenCommand}" CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Title}" FontSize="16" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding Subtitle}" Style="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="1" Text="not synced" IsVisible="{Binding Pending}" TextColor="{StaticResource Warning}" FontSize="12" VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

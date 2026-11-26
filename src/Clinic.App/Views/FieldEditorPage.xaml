@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:f="clr-namespace:Clinic.Shared.Forms;assembly=Clinic.Shared"
+             x:Class="Clinic.App.Views.FieldEditorPage"
+             x:DataType="vm:FieldEditorViewModel"
+             Title="{Binding PageTitle}">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="12" MaximumWidthRequest="860">
+
+            <!-- Basics -->
+            <Border Style="{StaticResource Card}">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="16" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
+                    <Label Text="Label (English)" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Column="1" Text="Label (Urdu)" Style="{StaticResource FieldLabel}" />
+                    <Entry Grid.Row="1" Text="{Binding LabelEn}" SemanticProperties.Description="Label in English" />
+                    <Entry Grid.Row="1" Grid.Column="1" Text="{Binding LabelUr}" FlowDirection="RightToLeft" SemanticProperties.Description="Label in Urdu" />
+
+                    <Label Grid.Row="2" Text="Key (immutable once published)" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Row="2" Grid.Column="1" Text="Type" Style="{StaticResource FieldLabel}" />
+                    <Entry Grid.Row="3" Text="{Binding Key}" Placeholder="e.g. blood_group" SemanticProperties.Description="Field key" />
+                    <Picker Grid.Row="3" Grid.Column="1" ItemsSource="{Binding Types}" SelectedItem="{Binding Type}" SemanticProperties.Description="Field type" />
+
+                    <Label Grid.Row="4" Text="Placeholder" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Row="4" Grid.Column="1" Text="Width (of 4 columns)" Style="{StaticResource FieldLabel}" />
+                    <Entry Grid.Row="5" Text="{Binding Placeholder}" />
+                    <Picker Grid.Row="5" Grid.Column="1" ItemsSource="{Binding ColumnChoices}" SelectedItem="{Binding Columns}" />
+
+                    <Label Grid.Row="6" Text="Help text" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Row="6" Grid.Column="1" Text="Default (literal, or =expression)" Style="{StaticResource FieldLabel}" />
+                    <Entry Grid.Row="7" Text="{Binding Help}" />
+                    <Entry Grid.Row="7" Grid.Column="1" Text="{Binding DefaultValue}" Placeholder="e.g. normal or =today()" />
+                </Grid>
+            </Border>
+
+            <!-- Options -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding HasOptions}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Options — one per line: code | English | Urdu" Style="{StaticResource FieldLabel}" />
+                    <Editor Text="{Binding OptionsText}" AutoSize="TextChanges" MinimumHeightRequest="100"
+                            Placeholder="morning | Morning | صبح" />
+                    <Label Text="Display" Style="{StaticResource FieldLabel}" />
+                    <Picker ItemsSource="{Binding DisplayChoices}" SelectedItem="{Binding Display}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}" IsVisible="{Binding IsLookup}">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="16" RowDefinitions="Auto,Auto">
+                    <Label Text="Lookup list" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Column="1" Text="Filter by parent field (cascading)" Style="{StaticResource FieldLabel}" />
+                    <Picker Grid.Row="1" ItemsSource="{Binding LookupKeys}" SelectedItem="{Binding LookupList}" />
+                    <Picker Grid.Row="1" Grid.Column="1" ItemsSource="{Binding ParentFieldKeys}" SelectedItem="{Binding LookupParentField}" />
+                </Grid>
+            </Border>
+
+            <Border Style="{StaticResource Card}" IsVisible="{Binding IsCalculated}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Formula" Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding Formula}" Placeholder="round(weight_kg / (height_cm/100)^2, 1)" FontFamily="Consolas" />
+                    <Label Text="Use field keys and functions like round, if, min, max, daysBetween, ageYears, today()."
+                           Style="{StaticResource Muted}" FontSize="12" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Repeating group columns -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding IsGroup}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Columns of each row" Style="{StaticResource FieldLabel}" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Children}" Spacing="4">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="f:FieldDefinition">
+                                <Grid Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FieldEditorViewModel}}, Path=EditChildCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Grid.GestureRecognizers>
+                                    <Label Text="{Binding Key}" />
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                    <Button Text="+ Add column" Command="{Binding AddChildCommand}" HorizontalOptions="Start" Style="{StaticResource SecondaryButton}" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="16" RowDefinitions="Auto,Auto">
+                        <Label Text="Minimum rows" Style="{StaticResource FieldLabel}" />
+                        <Label Grid.Column="1" Text="Maximum rows" Style="{StaticResource FieldLabel}" />
+                        <Entry Grid.Row="1" Text="{Binding MinRows}" Keyboard="Numeric" />
+                        <Entry Grid.Row="1" Grid.Column="1" Text="{Binding MaxRows}" Keyboard="Numeric" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Validation -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Validation" FontFamily="OpenSansSemibold" />
+                    <HorizontalStackLayout Spacing="8">
+                        <Switch IsToggled="{Binding Required}" /><Label Text="Always required" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                    <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="12" RowDefinitions="Auto,Auto" IsVisible="{Binding IsNumeric}">
+                        <Label Text="Min" Style="{StaticResource FieldLabel}" />
+                        <Label Grid.Column="1" Text="Max" Style="{StaticResource FieldLabel}" />
+                        <Label Grid.Column="2" Text="Unit" Style="{StaticResource FieldLabel}" />
+                        <Label Grid.Column="3" Text="Decimals" Style="{StaticResource FieldLabel}" />
+                        <Entry Grid.Row="1" Text="{Binding Min}" Keyboard="Numeric" />
+                        <Entry Grid.Row="1" Grid.Column="1" Text="{Binding Max}" Keyboard="Numeric" />
+                        <Entry Grid.Row="1" Grid.Column="2" Text="{Binding Unit}" Placeholder="kg" />
+                        <Entry Grid.Row="1" Grid.Column="3" Text="{Binding Decimals}" Keyboard="Numeric" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" IsVisible="{Binding IsText}">
+                        <Label Text="Min length" Style="{StaticResource FieldLabel}" />
+                        <Label Grid.Column="1" Text="Max length" Style="{StaticResource FieldLabel}" />
+                        <Entry Grid.Row="1" Text="{Binding MinLength}" Keyboard="Numeric" />
+                        <Entry Grid.Row="1" Grid.Column="1" Text="{Binding MaxLength}" Keyboard="Numeric" />
+                        <Label Grid.Row="2" Text="Pattern (regex)" Style="{StaticResource FieldLabel}" />
+                        <Label Grid.Row="2" Grid.Column="1" Text="Pattern message" Style="{StaticResource FieldLabel}" />
+                        <Entry Grid.Row="3" Text="{Binding Pattern}" FontFamily="Consolas" />
+                        <Entry Grid.Row="3" Grid.Column="1" Text="{Binding PatternMessage}" />
+                        <Label Grid.Row="4" Text="Mask (# digit, A letter)" Style="{StaticResource FieldLabel}" />
+                        <Entry Grid.Row="5" Text="{Binding Mask}" Placeholder="#####-#######-#" />
+                        <HorizontalStackLayout Grid.Row="5" Grid.Column="1" Spacing="8">
+                            <Switch IsToggled="{Binding Unique}" /><Label Text="Unique in this clinic" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Grid>
+                    <HorizontalStackLayout Spacing="8" IsVisible="{Binding IsDate}">
+                        <Switch IsToggled="{Binding NotInFuture}" /><Label Text="Cannot be in the future" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Logic -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Conditions (expressions)" FontFamily="OpenSansSemibold" />
+                    <Label Text="Show when" Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding VisibleWhen}" Placeholder="gender == 'F' &amp;&amp; ageYears >= 12" FontFamily="Consolas" />
+                    <Label Text="Required when" Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding RequiredWhen}" Placeholder="follow_up_needed == true" FontFamily="Consolas" />
+                    <Label Text="Editable when" Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding EnabledWhen}" FontFamily="Consolas" />
+                    <Label Text="Abnormal ranges — one per line: expression | warning or critical | message" Style="{StaticResource FieldLabel}" />
+                    <Editor Text="{Binding AbnormalText}" AutoSize="TextChanges" MinimumHeightRequest="60"
+                            Placeholder="value &lt; 94 | critical | Low oxygen" FontFamily="Consolas" />
+                    <Button Text="Check field" Command="{Binding CheckCommand}" HorizontalOptions="Start" Style="{StaticResource SecondaryButton}" Margin="0,6,0,0" />
+                    <Label Text="{Binding CheckResult}" FontSize="13" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Access and flags -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Who can see / edit (leave empty for everyone)" FontFamily="OpenSansSemibold" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                        <VerticalStackLayout>
+                            <Label Text="View" Style="{StaticResource FieldLabel}" />
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding ViewRoles}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:SelectableRole">
+                                        <HorizontalStackLayout><CheckBox IsChecked="{Binding IsSelected}" /><Label Text="{Binding Name}" VerticalOptions="Center" /></HorizontalStackLayout>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Edit" Style="{StaticResource FieldLabel}" />
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding EditRoles}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:SelectableRole">
+                                        <HorizontalStackLayout><CheckBox IsChecked="{Binding IsSelected}" /><Label Text="{Binding Name}" VerticalOptions="Center" /></HorizontalStackLayout>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
+                    <FlexLayout Wrap="Wrap" Margin="0,8,0,0">
+                        <HorizontalStackLayout Margin="0,0,16,0"><Switch IsToggled="{Binding Sensitive}" /><Label Text="Sensitive" VerticalOptions="Center" /></HorizontalStackLayout>
+                        <HorizontalStackLayout Margin="0,0,16,0"><Switch IsToggled="{Binding Searchable}" /><Label Text="Searchable" VerticalOptions="Center" /></HorizontalStackLayout>
+                        <HorizontalStackLayout Margin="0,0,16,0"><Switch IsToggled="{Binding Reportable}" /><Label Text="Reportable" VerticalOptions="Center" /></HorizontalStackLayout>
+                        <HorizontalStackLayout Margin="0,0,16,0"><Switch IsToggled="{Binding ShowInList}" /><Label Text="Show in list" VerticalOptions="Center" /></HorizontalStackLayout>
+                        <HorizontalStackLayout Margin="0,0,16,0"><Switch IsToggled="{Binding PrintOnPrescription}" /><Label Text="Print on prescription" VerticalOptions="Center" /></HorizontalStackLayout>
+                        <HorizontalStackLayout Margin="0,0,16,0"><Switch IsToggled="{Binding CarryForward}" /><Label Text="Carry forward" VerticalOptions="Center" /></HorizontalStackLayout>
+                        <HorizontalStackLayout Margin="0,0,16,0"><Switch IsToggled="{Binding Retired}" /><Label Text="Retired" VerticalOptions="Center" /></HorizontalStackLayout>
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+            <FlexLayout Wrap="Wrap">
+                <Button Text="Apply" Command="{Binding ApplyCommand}" MinimumWidthRequest="120" Margin="0,0,10,10" />
+                <Button Text="Cancel" Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,10,10" />
+                <Button Text="Remove field" Command="{Binding RemoveCommand}" Style="{StaticResource DangerButton}" Margin="0,0,10,10" />
+            </FlexLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:c="clr-namespace:Clinic.Shared.Contracts;assembly=Clinic.Shared"
+             x:Class="Clinic.App.Views.DoctorEditPage"
+             x:DataType="vm:DoctorEditViewModel"
+             Title="{Binding PageTitle}">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="10" MaximumWidthRequest="900">
+            <Border Style="{StaticResource Card}">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="16" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
+                    <Label Text="Full name" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Column="1" Text="Specialty" Style="{StaticResource FieldLabel}" />
+                    <Entry Grid.Row="1" Text="{Binding FullName}" />
+                    <Picker Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Specialties}" SelectedItem="{Binding Specialty}" />
+                    <Label Grid.Row="2" Text="Registration / licence no." Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Row="2" Grid.Column="1" Text="Licence expiry" Style="{StaticResource FieldLabel}" />
+                    <Entry Grid.Row="3" Text="{Binding RegistrationNo}" />
+                    <DatePicker Grid.Row="3" Grid.Column="1" Date="{Binding LicenceExpiry}" Format="dd MMM yyyy" />
+                    <Label Grid.Row="4" Text="Type" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Row="4" Grid.Column="1" Text="Consultation fee" Style="{StaticResource FieldLabel}" />
+                    <Picker Grid.Row="5" ItemsSource="{Binding Types}" SelectedItem="{Binding DoctorType}" />
+                    <Entry Grid.Row="5" Grid.Column="1" Text="{Binding Fee}" Keyboard="Numeric" />
+                    <Label Grid.Row="6" Text="Staff login (for 'my queue')" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Row="6" Grid.Column="1" Text="Average consultation (min)" Style="{StaticResource FieldLabel}" />
+                    <Picker Grid.Row="7" ItemsSource="{Binding Users}" SelectedItem="{Binding LinkedUser}" ItemDisplayBinding="{Binding FullName, x:DataType=c:UserDto}" />
+                    <Grid Grid.Row="7" Grid.Column="1" ColumnDefinitions="*,Auto">
+                        <Entry Text="{Binding AverageMinutes}" Keyboard="Numeric" />
+                        <HorizontalStackLayout Grid.Column="1"><Switch IsToggled="{Binding IsActive}" /><Label Text="Active" VerticalOptions="Center" /></HorizontalStackLayout>
+                    </Grid>
+                </Grid>
+            </Border>
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+            <Button Text="Save" Command="{Binding SaveCommand}" HorizontalOptions="Start" MinimumWidthRequest="120" />
+
+            <VerticalStackLayout IsVisible="{Binding IsExisting}" Spacing="8">
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Text="Weekly sessions" FontFamily="OpenSansSemibold" FontSize="16" VerticalOptions="Center" />
+                    <Button Grid.Column="1" Text="+ Add session" Command="{Binding AddScheduleCommand}" Style="{StaticResource SecondaryButton}" />
+                </Grid>
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Schedules}" Spacing="4">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ScheduleRow">
+                            <Grid ColumnDefinitions="*,Auto" Padding="10,4" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                <Label Text="{Binding Text}" VerticalOptions="Center" />
+                                <Button Grid.Column="1" Text="Remove" Style="{StaticResource DangerButton}" BorderWidth="0"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DoctorEditViewModel}}, Path=RemoveScheduleCommand}" CommandParameter="{Binding .}" />
+                            </Grid>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                    <Label Text="Leave" FontFamily="OpenSansSemibold" FontSize="16" VerticalOptions="Center" />
+                    <Button Grid.Column="1" Text="+ Add leave" Command="{Binding AddLeaveCommand}" Style="{StaticResource SecondaryButton}" />
+                </Grid>
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Leaves}" Spacing="4">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:LeaveRow">
+                            <Grid ColumnDefinitions="*,Auto" Padding="10,4" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                <Label Text="{Binding Text}" VerticalOptions="Center" />
+                                <Button Grid.Column="1" Text="Remove" Style="{StaticResource DangerButton}" BorderWidth="0"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DoctorEditViewModel}}, Path=RemoveLeaveCommand}" CommandParameter="{Binding .}" />
+                            </Grid>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

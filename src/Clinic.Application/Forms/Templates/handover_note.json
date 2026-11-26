@@ -1,0 +1,14 @@
+{ "key": "handover_note", "name": "Handover note details", "entityType": "BranchNote",
+  "description": "Shift, priority and follow-up for front-desk handover notes.",
+  "definition": { "entityType": "BranchNote", "name": { "en": "Handover note details", "ur": "ہینڈ اوور نوٹ کی تفصیل" },
+  "sections": [ { "key": "details", "title": { "en": "Details", "ur": "تفصیل" }, "fields": [
+    { "key": "shift", "type": "singleSelect", "display": "radio", "label": { "en": "Shift", "ur": "شفٹ" }, "required": true, "columns": 2,
+      "options": [ { "code": "morning", "label": { "en": "Morning", "ur": "صبح" } }, { "code": "evening", "label": { "en": "Evening", "ur": "شام" } }, { "code": "night", "label": { "en": "Night", "ur": "رات" } } ] },
+    { "key": "priority", "type": "singleSelect", "label": { "en": "Priority", "ur": "ترجیح" }, "default": "normal", "columns": 2,
+      "options": [ { "code": "low", "label": { "en": "Low" } }, { "code": "normal", "label": { "en": "Normal" } }, { "code": "high", "label": { "en": "High" } } ] },
+    { "key": "follow_up_needed", "type": "yesNo", "label": { "en": "Follow-up needed", "ur": "فالو اپ درکار" }, "columns": 2 },
+    { "key": "follow_up_by", "type": "date", "label": { "en": "Follow up by", "ur": "فالو اپ کی تاریخ" }, "columns": 2,
+      "visibleWhen": "follow_up_needed == true", "requiredWhen": "follow_up_needed == true" },
+    { "key": "assigned_to", "type": "text", "label": { "en": "Assigned to", "ur": "ذمہ دار" }, "maxLength": 100, "columns": 2,
+      "visibleWhen": "follow_up_needed == true", "showInList": true }
+  ] } ] } }

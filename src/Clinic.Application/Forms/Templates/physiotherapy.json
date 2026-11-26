@@ -1,0 +1,17 @@
+{ "key": "physiotherapy", "name": "Physiotherapy session", "entityType": "Encounter",
+  "description": "Pain score, affected area, range of motion and session plan.",
+  "definition": { "entityType": "Encounter", "name": { "en": "Physiotherapy", "ur": "فزیو تھراپی" },
+  "sections": [ { "key": "session", "title": { "en": "Session" }, "fields": [
+    { "key": "affected_area", "type": "multiSelect", "display": "chips", "label": { "en": "Affected area" }, "required": true, "columns": 4,
+      "options": [ { "code": "neck", "label": { "en": "Neck" } }, { "code": "shoulder", "label": { "en": "Shoulder" } }, { "code": "back", "label": { "en": "Lower back" } },
+                   { "code": "hip", "label": { "en": "Hip" } }, { "code": "knee", "label": { "en": "Knee" } }, { "code": "ankle", "label": { "en": "Ankle" } } ] },
+    { "key": "pain_before", "type": "integer", "label": { "en": "Pain before (0–10)" }, "min": 0, "max": 10, "required": true, "columns": 1,
+      "abnormal": [ { "when": "value >= 7", "severity": "warning" } ] },
+    { "key": "pain_after", "type": "integer", "label": { "en": "Pain after (0–10)" }, "min": 0, "max": 10, "columns": 1 },
+    { "key": "improvement", "type": "calculated", "label": { "en": "Improvement" }, "formula": "pain_before - pain_after", "columns": 1, "unit": "points" },
+    { "key": "rom_notes", "type": "multilineText", "label": { "en": "Range of motion" }, "columns": 4 },
+    { "key": "modalities", "type": "multiSelect", "label": { "en": "Treatment given" }, "columns": 4,
+      "options": [ { "code": "tens", "label": { "en": "TENS" } }, { "code": "us", "label": { "en": "Ultrasound" } }, { "code": "heat", "label": { "en": "Hot pack" } },
+                   { "code": "exercise", "label": { "en": "Exercises" } }, { "code": "manual", "label": { "en": "Manual therapy" } } ] },
+    { "key": "home_exercises", "type": "multilineText", "label": { "en": "Home exercises" }, "columns": 4, "printOnPrescription": true }
+  ] } ] } }

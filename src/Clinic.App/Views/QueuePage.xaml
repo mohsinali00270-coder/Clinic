@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:local="clr-namespace:Clinic.Client.Core.Local;assembly=Clinic.Client.Core"
+             x:Class="Clinic.App.Views.QueuePage"
+             x:DataType="vm:QueueViewModel"
+             Title="Queue">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Sync now" Command="{Binding SyncNowCommand}" />
+    </ContentPage.ToolbarItems>
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Padding="20,12" RowSpacing="8" MaximumWidthRequest="900">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <Picker ItemsSource="{Binding Doctors}" SelectedItem="{Binding Doctor}" ItemDisplayBinding="{Binding FullName, x:DataType=local:LocalDoctor}"
+                    Title="Doctor" SemanticProperties.Description="Doctor" />
+            <Button Grid.Column="1" Text="Call next" Command="{Binding CallNextCommand}" MinimumWidthRequest="140" />
+        </Grid>
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="14,10">
+            <Label Text="{Binding NowServing}" FontSize="18" FontFamily="OpenSansSemibold" />
+        </Border>
+        <Label Grid.Row="2" Text="{Binding Summary}" Style="{StaticResource Muted}" />
+        <Label Grid.Row="3" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+        <CollectionView Grid.Row="4" ItemsSource="{Binding Queue}" SelectionMode="None">
+            <CollectionView.EmptyView>
+                <Label Text="The queue is empty." Style="{StaticResource Muted}" HorizontalOptions="Center" Margin="0,40" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:QueueRow">
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,8" Padding="14,10">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:QueueViewModel}}, Path=ActCommand}" CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+                        <Grid ColumnDefinitions="64,*" ColumnSpacing="12">
+                            <Border StrokeShape="RoundRectangle 10" StrokeThickness="0" HeightRequest="52"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource Tertiary}}">
+                                <Label Text="{Binding Token}" FontSize="24" FontFamily="OpenSansSemibold" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                <Label Text="{Binding Name}" FontSize="16" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding Status}" />
+                                <Label Text="{Binding Wait}" Style="{StaticResource Muted}" />
+                                <Label Text="EMERGENCY" IsVisible="{Binding IsEmergency}" TextColor="{StaticResource Danger}" FontSize="12" FontFamily="OpenSansSemibold" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

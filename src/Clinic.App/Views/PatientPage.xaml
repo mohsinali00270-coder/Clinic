@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:local="clr-namespace:Clinic.Client.Core.Local;assembly=Clinic.Client.Core"
+             x:Class="Clinic.App.Views.PatientPage"
+             x:DataType="vm:PatientViewModel"
+             Title="{Binding Name}">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="12" MaximumWidthRequest="900">
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="{Binding Name}" Style="{StaticResource PageTitle}" />
+                    <Label Text="{Binding Details}" Style="{StaticResource Muted}" />
+                    <Label Text="{Binding SyncText}" TextColor="{StaticResource Warning}" FontSize="12"
+                           IsVisible="{Binding SyncText, Converter={StaticResource IsNotNullConverter}}" />
+                    <Label Text="{Binding DynamicSummary}" FontSize="13" Margin="0,6,0,0"
+                           IsVisible="{Binding DynamicSummary, Converter={StaticResource IsNotNullConverter}}" />
+                    <FlexLayout Wrap="Wrap" Margin="0,8,0,0">
+                        <Button Text="Book appointment" Command="{Binding BookCommand}" IsVisible="{Binding CanBook}" Margin="0,0,8,8" />
+                        <Button Text="Walk-in" Command="{Binding WalkInCommand}" IsVisible="{Binding CanBook}" Margin="0,0,8,8" />
+                        <Button Text="New consultation" Command="{Binding NewConsultationCommand}" IsVisible="{Binding CanConsult}" Margin="0,0,8,8" />
+                        <Button Text="Edit" Command="{Binding EditCommand}" IsVisible="{Binding CanEdit}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Add photo" Command="{Binding AddPhotoCommand}" IsVisible="{Binding CanUpload}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Add document" Command="{Binding AddDocumentCommand}" IsVisible="{Binding CanUpload}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </Border>
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+            <Label Text="Files" Style="{StaticResource FieldLabel}" FontSize="15" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Files}" Spacing="4">
+                <BindableLayout.EmptyView>
+                    <Label Text="No files yet." Style="{StaticResource Muted}" />
+                </BindableLayout.EmptyView>
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="local:LocalAttachment">
+                        <Grid ColumnDefinitions="*,Auto" Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PatientViewModel}}, Path=OpenFileCommand}" CommandParameter="{Binding .}" />
+                            </Grid.GestureRecognizers>
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Caption, TargetNullValue='(no caption)'}" />
+                                <Label Text="{Binding FileName}" Style="{StaticResource Muted}" FontSize="12" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="1" Text="{Binding Category}" Style="{StaticResource Muted}" VerticalOptions="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <Label Text="Timeline" Style="{StaticResource FieldLabel}" FontSize="15" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Timeline}" Spacing="2">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TimelineRow">
+                        <Grid ColumnDefinitions="30,*" Padding="0,4">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PatientViewModel}}, Path=OpenTimelineCommand}" CommandParameter="{Binding .}" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="{Binding Icon}" />
+                            <VerticalStackLayout Grid.Column="1">
+                                <Label Text="{Binding Item.Title}" />
+                                <Label Text="{Binding When}" Style="{StaticResource Muted}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

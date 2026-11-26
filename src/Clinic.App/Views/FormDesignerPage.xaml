@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:c="clr-namespace:Clinic.Shared.Contracts;assembly=Clinic.Shared"
+             x:Class="Clinic.App.Views.FormDesignerPage"
+             x:DataType="vm:FormDesignerViewModel"
+             Title="{Binding Name}">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Preview" Command="{Binding PreviewCommand}" />
+        <ToolbarItem Text="Save draft" Command="{Binding SaveCommand}" />
+        <ToolbarItem Text="Publish" Command="{Binding PublishCommand}" />
+        <ToolbarItem Text="More" Command="{Binding MoreCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="12" MaximumWidthRequest="900">
+            <Border Style="{StaticResource Card}">
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="16" RowSpacing="4">
+                    <Label Text="Form name" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Column="1" Text="Entity" Style="{StaticResource FieldLabel}" />
+                    <Entry Grid.Row="1" Text="{Binding Name}" SemanticProperties.Description="Form name" />
+                    <Label Grid.Row="1" Grid.Column="1" Text="{Binding EntityType}" VerticalOptions="Center" />
+                    <Label Grid.Row="2" Text="Applies to branch" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Row="2" Grid.Column="1" Text="Specialty (optional)" Style="{StaticResource FieldLabel}" />
+                    <Picker Grid.Row="3" ItemsSource="{Binding Branches}" SelectedItem="{Binding ContextBranch}"
+                            ItemDisplayBinding="{Binding Name, x:DataType=c:BranchDto}" />
+                    <Grid Grid.Row="3" Grid.Column="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Entry Text="{Binding Specialty}" Placeholder="e.g. dental" />
+                        <HorizontalStackLayout Grid.Column="1" Spacing="6">
+                            <Switch IsToggled="{Binding IsActive}" />
+                            <Label Text="Active" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <HorizontalStackLayout Spacing="10">
+                <Label Text="{Binding StatusText}" Style="{StaticResource Muted}" VerticalOptions="Center" />
+                <Label Text="· unsaved changes" TextColor="{StaticResource Warning}" IsVisible="{Binding IsUnsaved}" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+            <Border Style="{StaticResource Card}" IsVisible="{Binding HasProblems}" Stroke="{StaticResource Warning}">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="Fix before publishing" FontFamily="OpenSansSemibold" TextColor="{StaticResource Warning}" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Problems}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Label Text="{Binding .}" FontSize="13" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Sections}" Spacing="12">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SectionRow">
+                        <Border Style="{StaticResource Card}">
+                            <VerticalStackLayout Spacing="6">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Text="{Binding Title}" FontSize="16" FontFamily="OpenSansSemibold" VerticalOptions="Center" />
+                                    <HorizontalStackLayout Grid.Column="1" Spacing="2">
+                                        <Button Text="↑" Style="{StaticResource SecondaryButton}" BorderWidth="0" SemanticProperties.Description="Move section up"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FormDesignerViewModel}}, Path=MoveSectionUpCommand}" CommandParameter="{Binding .}" />
+                                        <Button Text="↓" Style="{StaticResource SecondaryButton}" BorderWidth="0" SemanticProperties.Description="Move section down"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FormDesignerViewModel}}, Path=MoveSectionDownCommand}" CommandParameter="{Binding .}" />
+                                        <Button Text="Rename" Style="{StaticResource SecondaryButton}" BorderWidth="0"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FormDesignerViewModel}}, Path=RenameSectionCommand}" CommandParameter="{Binding .}" />
+                                        <Button Text="Delete" Style="{StaticResource DangerButton}" BorderWidth="0"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FormDesignerViewModel}}, Path=DeleteSectionCommand}" CommandParameter="{Binding .}" />
+                                    </HorizontalStackLayout>
+                                </Grid>
+
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Fields}" Spacing="4">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:FieldRow">
+                                            <Grid ColumnDefinitions="*,Auto" Padding="10,6"
+                                                  BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                                <Grid.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FormDesignerViewModel}}, Path=EditFieldCommand}"
+                                                                          CommandParameter="{Binding .}" />
+                                                </Grid.GestureRecognizers>
+                                                <VerticalStackLayout>
+                                                    <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                                    <Label Text="{Binding Subtitle}" Style="{StaticResource Muted}" FontSize="12" />
+                                                </VerticalStackLayout>
+                                                <HorizontalStackLayout Grid.Column="1">
+                                                    <Button Text="↑" Style="{StaticResource SecondaryButton}" BorderWidth="0" SemanticProperties.Description="Move field up"
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FormDesignerViewModel}}, Path=MoveFieldUpCommand}" CommandParameter="{Binding .}" />
+                                                    <Button Text="↓" Style="{StaticResource SecondaryButton}" BorderWidth="0" SemanticProperties.Description="Move field down"
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FormDesignerViewModel}}, Path=MoveFieldDownCommand}" CommandParameter="{Binding .}" />
+                                                </HorizontalStackLayout>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+
+                                <Button Text="+ Add field" HorizontalOptions="Start" Style="{StaticResource SecondaryButton}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FormDesignerViewModel}}, Path=AddFieldCommand}" CommandParameter="{Binding .}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <Button Text="+ Add section" Command="{Binding AddSectionCommand}" HorizontalOptions="Start" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

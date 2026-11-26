@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.UserEditPage"
+             x:DataType="vm:UserEditViewModel"
+             Title="{Binding Title}">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="4" MaximumWidthRequest="640">
+            <Label Text="User name" Style="{StaticResource FieldLabel}" />
+            <Entry Text="{Binding UserName}" IsReadOnly="{Binding IsExisting}" Keyboard="Plain"
+                   IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" Placeholder="Used to sign in" />
+
+            <Label Text="Full name" Style="{StaticResource FieldLabel}" />
+            <Entry Text="{Binding FullName}" Placeholder="Full name" />
+
+            <Label Text="Email" Style="{StaticResource FieldLabel}" />
+            <Entry Text="{Binding Email}" Keyboard="Email" Placeholder="Optional" />
+
+            <Label Text="Phone" Style="{StaticResource FieldLabel}" />
+            <Entry Text="{Binding Phone}" Keyboard="Telephone" Placeholder="Optional" />
+
+            <VerticalStackLayout IsVisible="{Binding IsNew}">
+                <Label Text="Initial password" Style="{StaticResource FieldLabel}" />
+                <Entry Text="{Binding Password}" IsPassword="True" Placeholder="8+ characters with upper, lower and a digit" />
+            </VerticalStackLayout>
+
+            <HorizontalStackLayout Spacing="8" Margin="0,8,0,0" IsVisible="{Binding IsExisting}">
+                <Switch IsToggled="{Binding IsActive}" />
+                <Label Text="Active" VerticalOptions="Center" />
+                <Label Text="· locked after failed sign-ins" TextColor="{StaticResource Warning}" VerticalOptions="Center" IsVisible="{Binding IsLockedOut}" />
+            </HorizontalStackLayout>
+
+            <Label Text="Roles" Style="{StaticResource FieldLabel}" Margin="0,16,0,0" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Roles}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SelectableOption">
+                        <Grid ColumnDefinitions="Auto,*" MinimumHeightRequest="44">
+                            <CheckBox IsChecked="{Binding IsSelected}" VerticalOptions="Center" SemanticProperties.Description="{Binding Label}" />
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                <Label Text="{Binding Label}" />
+                                <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <Label Text="Branches" Style="{StaticResource FieldLabel}" Margin="0,16,0,0" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Branches}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SelectableOption">
+                        <Grid ColumnDefinitions="Auto,*" MinimumHeightRequest="44">
+                            <CheckBox IsChecked="{Binding IsSelected}" VerticalOptions="Center" SemanticProperties.Description="{Binding Label}" />
+                            <Label Grid.Column="1" Text="{Binding Label}" VerticalOptions="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" Margin="0,8" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+            <FlexLayout Wrap="Wrap" Margin="0,16,0,0">
+                <Button Text="Save" Command="{Binding SaveCommand}" IsEnabled="{Binding IsNotBusy}" MinimumWidthRequest="120" Margin="0,0,10,10" />
+                <Button Text="Reset password" Command="{Binding ResetPasswordCommand}" IsVisible="{Binding CanResetPassword}"
+                        Style="{StaticResource SecondaryButton}" Margin="0,0,10,10" />
+                <Button Text="Cancel" Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,10,10" />
+            </FlexLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

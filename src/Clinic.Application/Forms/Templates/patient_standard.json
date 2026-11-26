@@ -1,0 +1,26 @@
+{ "key": "patient_standard", "name": "Patient registration (standard)", "entityType": "Patient",
+  "description": "CNIC, blood group, address with city/area, emergency contact, allergies and referral source.",
+  "definition": { "entityType": "Patient", "name": { "en": "Patient registration", "ur": "مریض کا اندراج" },
+  "sections": [
+    { "key": "identity", "title": { "en": "Identity", "ur": "شناخت" }, "fields": [
+      { "key": "cnic", "type": "idNumber", "label": { "en": "CNIC", "ur": "شناختی کارڈ نمبر" }, "mask": "#####-#######-#", "unique": true, "searchable": true, "sensitive": true, "columns": 2,
+        "placeholder": { "en": "42101-1234567-1" } },
+      { "key": "blood_group", "type": "lookup", "lookupList": "blood_group", "label": { "en": "Blood group", "ur": "بلڈ گروپ" }, "columns": 1 },
+      { "key": "marital_status", "type": "lookup", "lookupList": "marital_status", "label": { "en": "Marital status", "ur": "ازدواجی حیثیت" }, "columns": 1,
+        "visibleWhen": "ageYears >= 16" } ] },
+    { "key": "address", "title": { "en": "Address", "ur": "پتہ" }, "collapsible": true, "fields": [
+      { "key": "address", "type": "multilineText", "label": { "en": "Street address", "ur": "گلی / مکان" }, "maxLength": 300, "columns": 4 },
+      { "key": "city", "type": "lookup", "lookupList": "cities", "label": { "en": "City", "ur": "شہر" }, "columns": 2, "reportable": true },
+      { "key": "area", "type": "lookup", "lookupList": "areas", "lookupParentField": "city", "label": { "en": "Area", "ur": "علاقہ" }, "columns": 2, "reportable": true } ] },
+    { "key": "emergency", "title": { "en": "Emergency contact", "ur": "ہنگامی رابطہ" }, "collapsible": true, "fields": [
+      { "key": "emergency_name", "type": "text", "label": { "en": "Name", "ur": "نام" }, "maxLength": 100, "columns": 2 },
+      { "key": "emergency_phone", "type": "phone", "label": { "en": "Phone", "ur": "فون" }, "columns": 1, "requiredWhen": "!isEmpty(emergency_name)" },
+      { "key": "emergency_relationship", "type": "lookup", "lookupList": "relationship", "label": { "en": "Relationship", "ur": "رشتہ" }, "columns": 1 } ] },
+    { "key": "medical", "title": { "en": "Medical", "ur": "طبی" }, "fields": [
+      { "key": "allergies", "type": "multiSelect", "display": "chips", "label": { "en": "Allergies", "ur": "الرجی" }, "columns": 4, "carryForward": true, "printOnPrescription": true,
+        "options": [ { "code": "none", "label": { "en": "None known" } }, { "code": "penicillin", "label": { "en": "Penicillin" } }, { "code": "sulfa", "label": { "en": "Sulfa drugs" } },
+                     { "code": "nsaids", "label": { "en": "NSAIDs" } }, { "code": "latex", "label": { "en": "Latex" } }, { "code": "food", "label": { "en": "Food" } }, { "code": "other", "label": { "en": "Other" } } ] },
+      { "key": "allergy_notes", "type": "text", "label": { "en": "Allergy details", "ur": "الرجی کی تفصیل" }, "columns": 4,
+        "visibleWhen": "contains(allergies, 'other') || contains(allergies, 'food')", "requiredWhen": "contains(allergies, 'other')" },
+      { "key": "referral_source", "type": "lookup", "lookupList": "referral_source", "label": { "en": "How did you hear about us?" }, "columns": 2, "reportable": true } ] }
+  ] } }

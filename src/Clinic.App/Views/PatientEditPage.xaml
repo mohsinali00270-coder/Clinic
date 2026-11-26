@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:controls="clr-namespace:Clinic.App.Controls"
+             x:Class="Clinic.App.Views.PatientEditPage"
+             x:DataType="vm:PatientEditViewModel"
+             Title="{Binding PageTitle}">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="10" MaximumWidthRequest="1000">
+            <Border Style="{StaticResource Card}">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="16" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
+                    <Label Text="Full name *" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Column="1" Text="Phone" Style="{StaticResource FieldLabel}" />
+                    <Entry Grid.Row="1" Text="{Binding FullName}" SemanticProperties.Description="Full name" />
+                    <Entry Grid.Row="1" Grid.Column="1" Text="{Binding Phone}" Keyboard="Telephone" Placeholder="0300-1234567" SemanticProperties.Description="Phone" />
+
+                    <Label Grid.Row="2" Text="Gender *" Style="{StaticResource FieldLabel}" />
+                    <HorizontalStackLayout Grid.Row="2" Grid.Column="1" Spacing="8">
+                        <Label Text="Date of birth" Style="{StaticResource FieldLabel}" />
+                        <Switch IsToggled="{Binding UseAge}" Scale="0.8" />
+                        <Label Text="age only" Style="{StaticResource FieldLabel}" />
+                    </HorizontalStackLayout>
+                    <Picker Grid.Row="3" ItemsSource="{Binding Genders}" SelectedItem="{Binding Gender}" Title="F / M / O" SemanticProperties.Description="Gender" />
+                    <Grid Grid.Row="3" Grid.Column="1">
+                        <DatePicker Date="{Binding DateOfBirth}" Format="dd MMM yyyy"
+                                    IsVisible="{Binding UseAge, Converter={StaticResource InvertedBoolConverter}}" />
+                        <Entry Text="{Binding Age}" Keyboard="Numeric" Placeholder="Age in years" IsVisible="{Binding UseAge}" />
+                    </Grid>
+
+                    <Label Grid.Row="4" Text="MRN" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Row="5" Text="{Binding Mrn, TargetNullValue='Assigned on save (works offline)'}" Style="{StaticResource Muted}" />
+                </Grid>
+            </Border>
+
+            <!-- FR-PAT-04: duplicate warning -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding HasDuplicates}" Stroke="{StaticResource Warning}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="⚠ Possible duplicate — same phone and a similar name:" TextColor="{StaticResource Warning}" FontFamily="OpenSansSemibold" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Duplicates}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PatientRow">
+                                <Button Text="{Binding Subtitle, StringFormat='Open {0}'}" Style="{StaticResource SecondaryButton}" BorderWidth="0" HorizontalOptions="Start"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PatientEditViewModel}}, Path=OpenDuplicateCommand}" CommandParameter="{Binding .}" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Style="{StaticResource Card}" IsVisible="{Binding FormModel, Converter={StaticResource IsNotNullConverter}}">
+                <controls:DynamicFormView Model="{Binding FormModel}" />
+            </Border>
+
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+            <HorizontalStackLayout Spacing="10">
+                <Button Text="Save" Command="{Binding SaveCommand}" IsEnabled="{Binding IsNotBusy}" MinimumWidthRequest="120" />
+                <Button Text="Cancel" Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

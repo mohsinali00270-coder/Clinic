@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="Clinic.App.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:Clinic.App.Views"
+    Title="Clinic"
+    FlyoutBehavior="Flyout">
+
+    <Shell.FlyoutHeader>
+        <VerticalStackLayout Padding="20,24,20,12" Spacing="2">
+            <Label x:Name="FlyoutUser" FontSize="17" FontFamily="OpenSansSemibold" />
+            <Label x:Name="FlyoutTenant" Style="{StaticResource Muted}" />
+            <Label x:Name="FlyoutSync" Style="{StaticResource Muted}" FontSize="12" Margin="0,6,0,0" />
+        </VerticalStackLayout>
+    </Shell.FlyoutHeader>
+
+    <ShellContent Route="login"
+                  Title="Sign in"
+                  FlyoutItemIsVisible="False"
+                  Shell.FlyoutBehavior="Disabled"
+                  ContentTemplate="{DataTemplate views:LoginPage}" />
+
+    <ShellContent Route="unlock"
+                  Title="Unlock"
+                  FlyoutItemIsVisible="False"
+                  Shell.FlyoutBehavior="Disabled"
+                  ContentTemplate="{DataTemplate views:UnlockPage}" />
+
+    <FlyoutItem x:Name="HomeItem" Title="Home" Route="home">
+        <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="PatientsItem" Title="Patients" Route="patients">
+        <ShellContent ContentTemplate="{DataTemplate views:PatientsPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="AppointmentsItem" Title="Appointments" Route="appointments">
+        <ShellContent ContentTemplate="{DataTemplate views:AppointmentsPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="QueueItem" Title="Queue" Route="queue">
+        <ShellContent ContentTemplate="{DataTemplate views:QueuePage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="NotesItem" Title="Handover notes" Route="notes">
+        <ShellContent ContentTemplate="{DataTemplate views:NotesPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="SyncItem" Title="Sync Center" Route="sync-center">
+        <ShellContent ContentTemplate="{DataTemplate views:SyncCenterPage}" />
+    </FlyoutItem>
+
+    <!-- Admin items: shown only when the cached permission set allows (FR-AUTH-01) -->
+    <FlyoutItem x:Name="BranchesItem" Title="Branches" Route="branches">
+        <ShellContent ContentTemplate="{DataTemplate views:BranchesPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="UsersItem" Title="Users" Route="users">
+        <ShellContent ContentTemplate="{DataTemplate views:UsersPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="DoctorsItem" Title="Doctors &amp; schedules" Route="doctors">
+        <ShellContent ContentTemplate="{DataTemplate views:DoctorsPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="FormsItem" Title="Forms" Route="forms">
+        <ShellContent ContentTemplate="{DataTemplate views:FormsPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="DevicesItem" Title="Devices" Route="devices">
+        <ShellContent ContentTemplate="{DataTemplate views:DevicesPage}" />
+    </FlyoutItem>
+
+    <MenuItem Text="Sign out" Clicked="OnSignOutClicked" />
+</Shell>

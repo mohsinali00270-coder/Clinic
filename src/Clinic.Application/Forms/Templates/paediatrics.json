@@ -1,0 +1,23 @@
+{ "key": "paediatrics", "name": "Paediatric consultation", "entityType": "Encounter",
+  "description": "Birth history, immunisation status and milestones for children.",
+  "definition": { "entityType": "Encounter", "name": { "en": "Paediatrics", "ur": "امراضِ اطفال" },
+  "sections": [
+    { "key": "complaint", "title": { "en": "Complaint" }, "fields": [
+      { "key": "chief_complaint", "type": "multilineText", "label": { "en": "Chief complaint" }, "required": true, "columns": 4 } ] },
+    { "key": "birth", "title": { "en": "Birth and growth" }, "collapsible": true, "fields": [
+      { "key": "birth_weight_kg", "type": "decimal", "unit": "kg", "decimals": 2, "label": { "en": "Birth weight" }, "min": 0.3, "max": 7, "columns": 1, "carryForward": true,
+        "abnormal": [ { "when": "value < 2.5", "severity": "warning", "message": { "en": "Low birth weight" } } ] },
+      { "key": "delivery", "type": "singleSelect", "label": { "en": "Delivery" }, "columns": 1, "carryForward": true,
+        "options": [ { "code": "svd", "label": { "en": "Normal" } }, { "code": "cs", "label": { "en": "C-section" } }, { "code": "assisted", "label": { "en": "Assisted" } } ] },
+      { "key": "preterm", "type": "yesNo", "label": { "en": "Preterm" }, "columns": 1, "carryForward": true } ] },
+    { "key": "immunisation", "title": { "en": "Immunisation (EPI)" }, "fields": [
+      { "key": "epi_up_to_date", "type": "yesNo", "label": { "en": "EPI up to date" }, "required": true, "columns": 1 },
+      { "key": "missed_vaccines", "type": "multiSelect", "label": { "en": "Missed vaccines" }, "columns": 3, "visibleWhen": "epi_up_to_date == false", "requiredWhen": "epi_up_to_date == false",
+        "options": [ { "code": "bcg", "label": { "en": "BCG" } }, { "code": "opv", "label": { "en": "OPV" } }, { "code": "penta", "label": { "en": "Pentavalent" } },
+                     { "code": "pcv", "label": { "en": "PCV" } }, { "code": "rota", "label": { "en": "Rotavirus" } }, { "code": "measles", "label": { "en": "Measles" } }, { "code": "typhoid", "label": { "en": "Typhoid" } } ] } ] },
+    { "key": "development", "title": { "en": "Development" }, "visibleWhen": "ageYears < 6", "fields": [
+      { "key": "milestones_normal", "type": "yesNo", "label": { "en": "Milestones normal for age" }, "columns": 2 },
+      { "key": "milestone_concerns", "type": "multilineText", "label": { "en": "Concerns" }, "columns": 4, "visibleWhen": "milestones_normal == false" } ] },
+    { "key": "plan", "title": { "en": "Plan" }, "fields": [
+      { "key": "plan", "type": "multilineText", "label": { "en": "Plan / advice" }, "columns": 4 } ] }
+  ] } }

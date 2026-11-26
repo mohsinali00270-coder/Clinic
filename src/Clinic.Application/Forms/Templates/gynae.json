@@ -1,0 +1,19 @@
+{ "key": "gynae", "name": "Gynae / antenatal consultation", "entityType": "Encounter",
+  "description": "Obstetric history, LMP with calculated EDD and gestational age (female patients 12+).",
+  "definition": { "entityType": "Encounter", "name": { "en": "Gynae / antenatal", "ur": "زچہ و بچہ" },
+  "sections": [
+    { "key": "complaint", "title": { "en": "Complaint" }, "fields": [
+      { "key": "chief_complaint", "type": "multilineText", "label": { "en": "Chief complaint" }, "required": true, "columns": 4 } ] },
+    { "key": "obstetric", "title": { "en": "Obstetric history" }, "visibleWhen": "gender == 'F' && ageYears >= 12", "fields": [
+      { "key": "lmp_date", "type": "date", "label": { "en": "LMP date", "ur": "آخری ماہواری" }, "notInFuture": true, "columns": 1 },
+      { "key": "edd", "type": "calculated", "label": { "en": "EDD" }, "formula": "lmp_date + 280", "columns": 1, "visibleWhen": "!isEmpty(lmp_date)" },
+      { "key": "gestational_weeks", "type": "calculated", "label": { "en": "Gestational age" }, "formula": "floor(daysBetween(lmp_date, today()) / 7)", "columns": 1,
+        "visibleWhen": "!isEmpty(lmp_date)", "abnormal": [ { "when": "value > 42", "severity": "critical", "message": { "en": "Past 42 weeks – check LMP" } } ] },
+      { "key": "gravida", "type": "integer", "label": { "en": "Gravida" }, "min": 0, "max": 20, "columns": 1 },
+      { "key": "para", "type": "integer", "label": { "en": "Para" }, "min": 0, "max": 20, "columns": 1 },
+      { "key": "previous_c_sections", "type": "integer", "label": { "en": "Previous C-sections" }, "min": 0, "max": 10, "columns": 1, "visibleWhen": "para > 0",
+        "abnormal": [ { "when": "value >= 2", "severity": "warning" } ] },
+      { "key": "high_risk", "type": "calculated", "label": { "en": "High-risk pregnancy" }, "formula": "ageYears >= 35 || previous_c_sections >= 2 || gravida >= 5", "columns": 1 } ] },
+    { "key": "plan", "title": { "en": "Plan" }, "fields": [
+      { "key": "plan", "type": "multilineText", "label": { "en": "Plan / advice" }, "columns": 4 } ] }
+  ] } }

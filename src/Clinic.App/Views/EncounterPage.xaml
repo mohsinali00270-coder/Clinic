@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:controls="clr-namespace:Clinic.App.Controls"
+             xmlns:local="clr-namespace:Clinic.Client.Core.Local;assembly=Clinic.Client.Core"
+             x:Class="Clinic.App.Views.EncounterPage"
+             x:DataType="vm:EncounterViewModel"
+             Title="Consultation">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Print" Command="{Binding PrintCommand}" />
+        <ToolbarItem Text="Share" Command="{Binding ShareCommand}" />
+    </ContentPage.ToolbarItems>
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="12" MaximumWidthRequest="1000">
+            <!-- Patient header -->
+            <Border Style="{StaticResource Card}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout>
+                        <Label Text="{Binding PatientName}" Style="{StaticResource PageTitle}" FontSize="20" />
+                        <Label Text="{Binding PatientDetails}" Style="{StaticResource Muted}" />
+                        <Label Text="{Binding Allergies}" TextColor="{StaticResource Danger}" FontFamily="OpenSansSemibold"
+                               IsVisible="{Binding Allergies, Converter={StaticResource IsNotNullConverter}}" />
+                    </VerticalStackLayout>
+                    <Border Grid.Column="1" Style="{StaticResource Badge}" VerticalOptions="Start">
+                        <Label Text="{Binding StatusText}" FontSize="12" />
+                    </Border>
+                </Grid>
+            </Border>
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+            <!-- Vitals -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Vitals" FontFamily="OpenSansSemibold" FontSize="16" />
+                    <Label Text="{Binding LatestVitals, TargetNullValue='No vitals recorded yet.'}" Style="{StaticResource Muted}" />
+                    <controls:DynamicFormView Model="{Binding VitalsModel}" IsVisible="{Binding VitalsModel, Converter={StaticResource IsNotNullConverter}}" />
+                    <Button Text="Save vitals" Command="{Binding RecordVitalsCommand}" HorizontalOptions="Start" Style="{StaticResource SecondaryButton}"
+                            IsVisible="{Binding VitalsModel, Converter={StaticResource IsNotNullConverter}}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Specialty form -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding NotesModel, Converter={StaticResource IsNotNullConverter}}">
+                <VerticalStackLayout Spacing="6">
+                    <controls:DynamicFormView Model="{Binding NotesModel}" />
+                    <HorizontalStackLayout Spacing="8" IsVisible="{Binding IsLocked, Converter={StaticResource InvertedBoolConverter}}">
+                        <Label Text="Follow-up date" VerticalOptions="Center" />
+                        <DatePicker Date="{Binding FollowUp}" Format="dd MMM yyyy" />
+                    </HorizontalStackLayout>
+                    <Button Text="{Binding NotesButtonText}" Command="{Binding SaveNotesCommand}"
+                            HorizontalOptions="Start" Style="{StaticResource SecondaryButton}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Diagnoses (FR-ENC-04) -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Diagnosis" FontFamily="OpenSansSemibold" FontSize="16" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Diagnoses}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DiagnosisRow">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Text="{Binding Text}" VerticalOptions="Center" />
+                                    <Button Grid.Column="1" Text="✕" Style="{StaticResource DangerButton}" BorderWidth="0" SemanticProperties.Description="Remove diagnosis"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:EncounterViewModel}}, Path=RemoveDiagnosisCommand}" CommandParameter="{Binding .}" />
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Entry Text="{Binding IcdQuery}" Placeholder="Search ICD-10 by code or words, e.g. J06 or throat" SemanticProperties.Description="Search ICD-10" />
+                        <Button Grid.Column="1" Text="Free text" Command="{Binding AddFreeTextDiagnosisCommand}" Style="{StaticResource SecondaryButton}" />
+                    </Grid>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding IcdResults}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="local:LocalIcd10">
+                                <Button Text="{Binding Description, StringFormat='+ {0}'}" Style="{StaticResource SecondaryButton}" BorderWidth="0" HorizontalOptions="Start"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:EncounterViewModel}}, Path=AddIcdCommand}" CommandParameter="{Binding .}" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Prescription (FR-RX-01…04) -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                        <Label Text="Prescription" FontFamily="OpenSansSemibold" FontSize="16" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="Favourites" Command="{Binding ApplyFavouriteCommand}" Style="{StaticResource SecondaryButton}" />
+                        <Button Grid.Column="2" Text="Save as favourite" Command="{Binding SaveFavouriteCommand}" Style="{StaticResource SecondaryButton}" />
+                    </Grid>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Warnings}" IsVisible="{Binding HasWarnings}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Label Text="{Binding .}" TextColor="{StaticResource Danger}" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="4">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:RxRow">
+                                <Grid ColumnDefinitions="*,Auto" Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:EncounterViewModel}}, Path=EditItemCommand}" CommandParameter="{Binding .}" />
+                                    </Grid.GestureRecognizers>
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                        <Label Text="{Binding Detail}" Style="{StaticResource Muted}" />
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="1" Text="{Binding Urdu}" FlowDirection="RightToLeft" VerticalOptions="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                    <Entry Text="{Binding DrugQuery}" Placeholder="Add medicine — type a name or generic" SemanticProperties.Description="Search medicines" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding DrugResults}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="local:LocalDrug">
+                                <Button Text="{Binding Name, StringFormat='+ {0}'}" Style="{StaticResource SecondaryButton}" BorderWidth="0" HorizontalOptions="Start"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:EncounterViewModel}}, Path=AddDrugCommand}" CommandParameter="{Binding .}" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Amendments (FR-ENC-05) -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding HasAmendments}">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="Amendments" FontFamily="OpenSansSemibold" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding AmendmentLog}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String"><Label Text="{Binding .}" FontSize="13" /></DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <FlexLayout Wrap="Wrap">
+                <Button Text="Sign" Command="{Binding SignCommand}" IsVisible="{Binding CanSign}" MinimumWidthRequest="120" Margin="0,0,10,10" />
+                <Button Text="Print prescription" Command="{Binding PrintCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,10,10" />
+            </FlexLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

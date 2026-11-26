@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.SyncCenterPage"
+             x:DataType="vm:SyncCenterViewModel"
+             Title="Sync Center">
+    <Grid RowDefinitions="Auto,Auto,*" Padding="20,12" RowSpacing="10" MaximumWidthRequest="760">
+        <Border Style="{StaticResource Card}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="{Binding Sync.StatusText}" FontFamily="OpenSansSemibold" />
+                    <Label Text="{Binding Sync.Outstanding, StringFormat='{0} change(s) on this device not yet on the server'}" Style="{StaticResource Muted}" />
+                </VerticalStackLayout>
+                <Button Grid.Column="1" Text="Sync now" Command="{Binding SyncNowCommand}" VerticalOptions="Center"
+                        IsEnabled="{Binding Sync.IsSyncing, Converter={StaticResource InvertedBoolConverter}}" />
+            </Grid>
+        </Border>
+
+        <Label Grid.Row="1" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Entries}" SelectionMode="None">
+            <CollectionView.EmptyView>
+                <Label Text="Everything is synced." Style="{StaticResource Muted}" HorizontalOptions="Center" Margin="0,40" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:OutboxRow">
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                            <Label Text="{Binding When}" Style="{StaticResource Muted}" />
+                            <Label Text="{Binding StatusText}" FontSize="13" />
+                            <Label Text="{Binding Error}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" FontSize="13" />
+                            <FlexLayout Wrap="Wrap" Margin="0,6,0,0">
+                                <Button Text="Retry" Style="{StaticResource SecondaryButton}" IsVisible="{Binding CanRetry}" Margin="0,0,10,6"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SyncCenterViewModel}}, Path=RetryCommand}"
+                                        CommandParameter="{Binding .}" />
+                                <Button Text="Keep mine" Style="{StaticResource SecondaryButton}" IsVisible="{Binding CanKeepMine}" Margin="0,0,10,6"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SyncCenterViewModel}}, Path=KeepMineCommand}"
+                                        CommandParameter="{Binding .}" />
+                                <Button Text="Discard mine" Style="{StaticResource DangerButton}" IsVisible="{Binding CanDiscard}" Margin="0,0,10,6"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SyncCenterViewModel}}, Path=DiscardCommand}"
+                                        CommandParameter="{Binding .}" />
+                            </FlexLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.HomePage"
+             x:DataType="vm:HomeViewModel"
+             Title="Home">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16" MaximumWidthRequest="760">
+
+            <VerticalStackLayout Spacing="2">
+                <Label Text="{Binding Greeting}" Style="{StaticResource PageTitle}" />
+                <Label Text="{Binding TenantName}" FontSize="16" />
+            </VerticalStackLayout>
+
+            <!-- FR-OFF-20 / FR-OFF-12: connectivity, sync state and queue always visible -->
+            <Border Style="{StaticResource Card}">
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                    <HorizontalStackLayout Spacing="8">
+                        <Ellipse WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Fill="{StaticResource Success}" IsVisible="{Binding IsOnline}" />
+                        <Ellipse WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Fill="{StaticResource Warning}"
+                                 IsVisible="{Binding IsOnline, Converter={StaticResource InvertedBoolConverter}}" />
+                        <Label Text="{Binding Sync.StatusText}" VerticalOptions="Center" LineBreakMode="WordWrap" />
+                    </HorizontalStackLayout>
+                    <ActivityIndicator Grid.Column="1" IsRunning="{Binding Sync.IsSyncing}" IsVisible="{Binding Sync.IsSyncing}"
+                                       HeightRequest="20" WidthRequest="20" />
+                    <HorizontalStackLayout Grid.Row="1" Grid.ColumnSpan="2" Spacing="10">
+                        <Button Text="Sync now" Command="{Binding SyncNowCommand}" Style="{StaticResource SecondaryButton}" />
+                        <Button Text="{Binding Sync.Outstanding, StringFormat='Sync Center ({0})'}" Command="{Binding OpenSyncCenterCommand}"
+                                Style="{StaticResource SecondaryButton}" />
+                    </HorizontalStackLayout>
+                </Grid>
+            </Border>
+
+            <Border Style="{StaticResource Card}" IsVisible="{Binding NeedsPin}">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout>
+                        <Label Text="Set up an offline PIN" FontFamily="OpenSansSemibold" />
+                        <Label Text="Unlock this device without internet. Without a PIN you need your password every time the app starts."
+                               Style="{StaticResource Muted}" />
+                    </VerticalStackLayout>
+                    <Button Grid.Column="1" Text="Set PIN" Command="{Binding SetupPinCommand}" VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <Border Style="{StaticResource Card}">
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="16" RowSpacing="8">
+                    <Label Text="Roles" Style="{StaticResource FieldLabel}" Margin="0" />
+                    <Label Grid.Column="1" Text="{Binding Roles}" />
+                    <Label Grid.Row="1" Text="Branches" Style="{StaticResource FieldLabel}" Margin="0" />
+                    <Label Grid.Row="1" Grid.Column="1" Text="{Binding Branches}" />
+                    <Label Grid.Row="2" Text="Permissions" Style="{StaticResource FieldLabel}" Margin="0" />
+                    <Label Grid.Row="2" Grid.Column="1" Text="{Binding PermissionCount, StringFormat='{0} granted'}" />
+                    <Label Grid.Row="3" Text="Device" Style="{StaticResource FieldLabel}" Margin="0" />
+                    <Label Grid.Row="3" Grid.Column="1" Text="{Binding DeviceInfoText}" />
+                </Grid>
+            </Border>
+
+            <Label Text="Go to" Style="{StaticResource FieldLabel}" FontSize="15" />
+            <FlexLayout Wrap="Wrap" JustifyContent="Start">
+                <Button Text="Patients" Command="{Binding OpenPatientsCommand}" IsVisible="{Binding CanPatients}"
+                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
+                <Button Text="Appointments" Command="{Binding OpenAppointmentsCommand}" IsVisible="{Binding CanAppointments}"
+                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
+                <Button Text="Queue" Command="{Binding OpenQueueCommand}" IsVisible="{Binding CanQueue}"
+                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
+                <Button Text="Doctors" Command="{Binding OpenDoctorsCommand}" IsVisible="{Binding CanDoctors}"
+                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
+                <Button Text="Handover notes" Command="{Binding OpenNotesCommand}" IsVisible="{Binding CanNotes}"
+                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
+                <Button Text="Branches" Command="{Binding OpenBranchesCommand}" IsVisible="{Binding CanBranches}"
+                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
+                <Button Text="Users" Command="{Binding OpenUsersCommand}" IsVisible="{Binding CanUsers}"
+                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
+                <Button Text="Forms" Command="{Binding OpenFormsCommand}" IsVisible="{Binding CanForms}"
+                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
+                <Button Text="Devices" Command="{Binding OpenDevicesCommand}" IsVisible="{Binding CanDevices}"
+                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
+            </FlexLayout>
+
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+            <FlexLayout Wrap="Wrap">
+                <Button Text="Change password" Command="{Binding ChangePasswordCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,10,10" />
+                <Button Text="Change offline PIN" Command="{Binding SetupPinCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,10,10"
+                        IsVisible="{Binding NeedsPin, Converter={StaticResource InvertedBoolConverter}}" />
+                <Button Text="Sign out" Command="{Binding LogoutCommand}" Style="{StaticResource DangerButton}" Margin="0,0,10,10" />
+            </FlexLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

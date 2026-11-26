@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.AppointmentsPage"
+             x:DataType="vm:AppointmentsViewModel"
+             Title="Appointments">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="20,12" RowSpacing="8" MaximumWidthRequest="900">
+        <HorizontalStackLayout Spacing="8">
+            <Button Text="‹" Command="{Binding PreviousDayCommand}" Style="{StaticResource SecondaryButton}" SemanticProperties.Description="Previous day" />
+            <DatePicker Date="{Binding Date}" Format="ddd dd MMM yyyy" />
+            <Button Text="›" Command="{Binding NextDayCommand}" Style="{StaticResource SecondaryButton}" SemanticProperties.Description="Next day" />
+            <Button Text="Today" Command="{Binding TodayCommand}" Style="{StaticResource SecondaryButton}" />
+        </HorizontalStackLayout>
+        <Label Grid.Row="1" Text="{Binding Summary}" Style="{StaticResource Muted}" />
+        <Label Grid.Row="2" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+        <CollectionView Grid.Row="3" ItemsSource="{Binding Appointments}" SelectionMode="None">
+            <CollectionView.EmptyView>
+                <Label Text="No appointments on this day." Style="{StaticResource Muted}" HorizontalOptions="Center" Margin="0,40" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:AppointmentRow">
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,8" Padding="14,10">
+                        <Grid ColumnDefinitions="70,*,Auto" ColumnSpacing="12">
+                            <Label Text="{Binding Time}" FontFamily="OpenSansSemibold" FontSize="16" VerticalOptions="Center" />
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding Subtitle}" Style="{StaticResource Muted}" />
+                                <Label Text="⚠ Double-booked — reschedule this one" IsVisible="{Binding Conflict}" TextColor="{StaticResource Danger}" FontSize="12" />
+                                <Label Text="not synced" IsVisible="{Binding Pending}" TextColor="{StaticResource Warning}" FontSize="12" />
+                            </VerticalStackLayout>
+                            <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
+                                <Button Text="Check in" IsVisible="{Binding CanCheckIn}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AppointmentsViewModel}}, Path=CheckInCommand}" CommandParameter="{Binding .}" />
+                                <Button Text="…" Style="{StaticResource SecondaryButton}" SemanticProperties.Description="More actions"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AppointmentsViewModel}}, Path=MoreCommand}" CommandParameter="{Binding .}" />
+                            </HorizontalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

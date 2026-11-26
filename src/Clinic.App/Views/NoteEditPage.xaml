@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:controls="clr-namespace:Clinic.App.Controls"
+             x:Class="Clinic.App.Views.NoteEditPage"
+             x:DataType="vm:NoteEditViewModel"
+             Title="{Binding PageTitle}">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="4" MaximumWidthRequest="1000">
+            <Label Text="{Binding DraftInfo}" IsVisible="{Binding DraftInfo, Converter={StaticResource IsNotNullConverter}}"
+                   TextColor="{StaticResource Warning}" Margin="0,0,0,8" />
+
+            <Label Text="Title" Style="{StaticResource FieldLabel}" />
+            <Entry Text="{Binding Title}" Placeholder="e.g. X-ray machine down until Monday" MaxLength="200"
+                   SemanticProperties.Description="Note title" />
+
+            <Label Text="Details" Style="{StaticResource FieldLabel}" />
+            <Editor Text="{Binding Body}" Placeholder="Anything the next shift should know" AutoSize="TextChanges"
+                    MinimumHeightRequest="100" MaxLength="4000" SemanticProperties.Description="Note details" />
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" Margin="0,8,0,0">
+                <Picker Title="Colour" ItemsSource="{Binding ColorNames}" SelectedItem="{Binding Color}" />
+                <HorizontalStackLayout Grid.Column="1" Spacing="8">
+                    <Switch IsToggled="{Binding IsPinned}" />
+                    <Label Text="Pin to top" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Grid>
+
+            <!-- §5: the tenant's dynamic form for handover notes -->
+            <Border Style="{StaticResource Card}" Margin="0,16,0,0" IsVisible="{Binding HasForm}">
+                <VerticalStackLayout Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="{Binding FormInfo}" Style="{StaticResource Muted}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="{Binding LanguageButtonText}" Command="{Binding ToggleLanguageCommand}"
+                                Style="{StaticResource SecondaryButton}" BorderWidth="0" FontSize="13" />
+                    </Grid>
+                    <controls:DynamicFormView Model="{Binding FormModel}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="{Binding SyncInfo}" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" Margin="0,8" />
+
+            <FlexLayout Wrap="Wrap" Margin="0,16,0,0">
+                <Button Text="Save" Command="{Binding SaveCommand}" IsEnabled="{Binding IsNotBusy}" MinimumWidthRequest="120" Margin="0,0,10,10" />
+                <Button Text="Cancel" Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,10,10" />
+                <Button Text="Delete" Command="{Binding DeleteCommand}" IsVisible="{Binding IsExisting}" Style="{StaticResource DangerButton}" Margin="0,0,10,10" />
+            </FlexLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

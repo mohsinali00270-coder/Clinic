@@ -1,0 +1,20 @@
+{ "key": "opd_general", "name": "General OPD consultation", "entityType": "Encounter",
+  "description": "Chief complaint, history, examination, assessment and plan.",
+  "definition": { "entityType": "Encounter", "name": { "en": "General OPD", "ur": "جنرل او پی ڈی" },
+  "sections": [
+    { "key": "complaint", "title": { "en": "Chief complaint", "ur": "بنیادی شکایت" }, "fields": [
+      { "key": "chief_complaint", "type": "multilineText", "label": { "en": "Chief complaint" }, "required": true, "maxLength": 1000, "columns": 3, "searchable": true },
+      { "key": "duration_days", "type": "integer", "unit": "days", "label": { "en": "Duration" }, "min": 0, "max": 3650, "columns": 1 } ] },
+    { "key": "history", "title": { "en": "History", "ur": "ہسٹری" }, "collapsible": true, "fields": [
+      { "key": "hpi", "type": "multilineText", "label": { "en": "History of present illness" }, "columns": 4 },
+      { "key": "past_history", "type": "multiSelect", "display": "chips", "label": { "en": "Past medical history" }, "columns": 4, "carryForward": true,
+        "options": [ { "code": "dm", "label": { "en": "Diabetes" } }, { "code": "htn", "label": { "en": "Hypertension" } }, { "code": "ihd", "label": { "en": "Heart disease" } },
+                     { "code": "asthma", "label": { "en": "Asthma" } }, { "code": "tb", "label": { "en": "TB" } }, { "code": "hep", "label": { "en": "Hepatitis B/C" } } ] },
+      { "key": "smoker", "type": "yesNo", "label": { "en": "Smoker" }, "columns": 1, "visibleWhen": "ageYears >= 12" } ] },
+    { "key": "exam", "title": { "en": "Examination", "ur": "معائنہ" }, "fields": [
+      { "key": "examination", "type": "multilineText", "label": { "en": "Findings" }, "columns": 4 } ] },
+    { "key": "plan", "title": { "en": "Assessment and plan", "ur": "تشخیص اور منصوبہ" }, "fields": [
+      { "key": "assessment", "type": "multilineText", "label": { "en": "Assessment" }, "columns": 4 },
+      { "key": "plan", "type": "multilineText", "label": { "en": "Plan / advice" }, "columns": 4, "printOnPrescription": true },
+      { "key": "follow_up_days", "type": "integer", "unit": "days", "label": { "en": "Follow up after" }, "min": 1, "max": 365, "columns": 1 } ] }
+  ] } }

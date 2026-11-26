@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:local="clr-namespace:Clinic.Client.Core.Local;assembly=Clinic.Client.Core"
+             x:Class="Clinic.App.Views.BookingPage"
+             x:DataType="vm:BookingViewModel"
+             Title="{Binding PageTitle}">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="10" MaximumWidthRequest="900">
+            <Label Text="{Binding PatientName}" Style="{StaticResource PageTitle}" />
+            <Border Style="{StaticResource Card}">
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12" RowDefinitions="Auto,Auto">
+                    <Label Text="Type" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Column="1" Text="Specialty" Style="{StaticResource FieldLabel}" />
+                    <Label Grid.Column="2" Text="Doctor" Style="{StaticResource FieldLabel}" />
+                    <Picker Grid.Row="1" ItemsSource="{Binding Types}" SelectedItem="{Binding Type}" ItemDisplayBinding="{Binding Name, x:DataType=local:LocalAppointmentType}"
+                            IsEnabled="{Binding IsReschedule, Converter={StaticResource InvertedBoolConverter}}" />
+                    <Picker Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Specialties}" SelectedItem="{Binding Specialty}" />
+                    <Picker Grid.Row="1" Grid.Column="2" ItemsSource="{Binding Doctors}" SelectedItem="{Binding Doctor}" ItemDisplayBinding="{Binding FullName, x:DataType=local:LocalDoctor}"
+                            SemanticProperties.Description="Doctor" />
+                </Grid>
+            </Border>
+            <Label Text="{Binding Preparation, StringFormat='Preparation: {0}'}" Style="{StaticResource Muted}"
+                   IsVisible="{Binding Preparation, Converter={StaticResource IsNotNullConverter}}" />
+
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="‹" Command="{Binding PreviousDayCommand}" Style="{StaticResource SecondaryButton}" SemanticProperties.Description="Previous day" />
+                <DatePicker Date="{Binding Date}" Format="ddd dd MMM yyyy" />
+                <Button Text="›" Command="{Binding NextDayCommand}" Style="{StaticResource SecondaryButton}" SemanticProperties.Description="Next day" />
+                <Button Text="Next available" Command="{Binding FindNextCommand}" Style="{StaticResource SecondaryButton}" />
+            </HorizontalStackLayout>
+            <Label Text="{Binding SlotsInfo}" Style="{StaticResource Muted}" />
+
+            <FlexLayout BindableLayout.ItemsSource="{Binding Slots}" Wrap="Wrap">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SlotOption">
+                        <Button Text="{Binding Text}" Margin="0,0,8,8" MinimumWidthRequest="80"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:BookingViewModel}}, Path=PickCommand}" CommandParameter="{Binding .}" />
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </FlexLayout>
+
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding NextAvailable}" Spacing="4">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SlotOption">
+                        <Button Text="{Binding Long}" Style="{StaticResource SecondaryButton}" HorizontalOptions="Start"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:BookingViewModel}}, Path=PickCommand}" CommandParameter="{Binding .}" />
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <Label Text="Notes" Style="{StaticResource FieldLabel}" />
+            <Entry Text="{Binding Notes}" Placeholder="Optional" MaxLength="1000" />
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

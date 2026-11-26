@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:controls="clr-namespace:Clinic.App.Controls"
+             x:Class="Clinic.App.Views.FormPreviewPage"
+             x:DataType="vm:FormPreviewViewModel"
+             Title="Preview">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="12">
+            <FlexLayout Wrap="Wrap" AlignItems="Center">
+                <Button Text="{Binding WidthLabel}" Command="{Binding ToggleWidthCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,10,8" />
+                <Button Text="English / اردو" Command="{Binding ToggleLanguageCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,10,8" />
+                <Picker Title="Preview as role" ItemsSource="{Binding Roles}" SelectedItem="{Binding Role}" WidthRequest="200" Margin="0,0,10,8" />
+                <HorizontalStackLayout IsVisible="{Binding HasVariables}" Spacing="6" Margin="0,0,10,8">
+                    <Label Text="Gender" VerticalOptions="Center" />
+                    <Picker ItemsSource="{Binding Genders}" SelectedItem="{Binding Gender}" WidthRequest="70" />
+                    <Label Text="Age" VerticalOptions="Center" />
+                    <Entry Text="{Binding Age}" Keyboard="Numeric" WidthRequest="60" />
+                </HorizontalStackLayout>
+                <Button Text="Validate test entry" Command="{Binding ValidateCommand}" Margin="0,0,10,8" />
+            </FlexLayout>
+            <Label Text="{Binding Result}" FontFamily="OpenSansSemibold" />
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+            <Border Style="{StaticResource Card}" WidthRequest="{Binding PreviewWidth}" HorizontalOptions="Start">
+                <controls:DynamicFormView Model="{Binding Model}" />
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

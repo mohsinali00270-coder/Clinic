@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.DevicesPage"
+             x:DataType="vm:DevicesViewModel"
+             Title="Devices">
+    <Grid RowDefinitions="Auto,*" Padding="20,12" MaximumWidthRequest="760">
+        <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+        <RefreshView Grid.Row="1" Command="{Binding LoadCommand}" IsRefreshing="{Binding IsBusy}">
+            <CollectionView ItemsSource="{Binding Devices}" SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <Label Text="No devices registered." Style="{StaticResource Muted}" HorizontalOptions="Center" Margin="0,40" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:DeviceRow">
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12">
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding Title}" FontSize="16" FontFamily="OpenSansSemibold" />
+                                    <Label Text="{Binding Subtitle}" Style="{StaticResource Muted}" />
+                                    <Label Text="{Binding LastSeen}" Style="{StaticResource Muted}" />
+                                </VerticalStackLayout>
+                                <Border Grid.Column="1" Style="{StaticResource Badge}" VerticalOptions="Start">
+                                    <Label Text="{Binding Status}" FontSize="12" />
+                                </Border>
+                                <HorizontalStackLayout Grid.Row="1" Grid.ColumnSpan="2" Spacing="10" Margin="0,10,0,0" IsVisible="{Binding CanManage}">
+                                    <Button Text="Rename" Style="{StaticResource SecondaryButton}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DevicesViewModel}}, Path=RenameCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    <Button Text="Revoke" Style="{StaticResource DangerButton}" IsVisible="{Binding CanRevoke}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DevicesViewModel}}, Path=RevokeCommand}"
+                                            CommandParameter="{Binding .}" />
+                                </HorizontalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

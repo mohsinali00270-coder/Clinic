@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.LookupEditPage"
+             x:DataType="vm:LookupEditViewModel"
+             Title="{Binding Title}">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Add item" Command="{Binding AddCommand}" />
+        <ToolbarItem Text="Import CSV" Command="{Binding ImportCommand}" />
+    </ContentPage.ToolbarItems>
+    <Grid RowDefinitions="Auto,Auto,*" Padding="20,12" RowSpacing="8" MaximumWidthRequest="760">
+        <Label Text="{Binding Info}" Style="{StaticResource Muted}" />
+        <Label Grid.Row="1" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Items}" SelectionMode="None">
+            <CollectionView.EmptyView>
+                <Label Text="No items yet. Add them one by one or import a CSV (code,labelEn,labelUr,parentCode,sortOrder)."
+                       Style="{StaticResource Muted}" HorizontalOptions="Center" Margin="0,40" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:LookupItemRow">
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,6" Padding="14,10">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LookupEditViewModel}}, Path=EditCommand}"
+                                                  CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout>
+                            <Label Text="{Binding Title}" />
+                            <Label Text="{Binding Subtitle}" Style="{StaticResource Muted}" FontSize="12" />
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

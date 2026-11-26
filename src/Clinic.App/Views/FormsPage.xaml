@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.FormsPage"
+             x:DataType="vm:FormsViewModel"
+             Title="Forms">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="New form" Command="{Binding NewCommand}" />
+        <ToolbarItem Text="Import" Command="{Binding ImportCommand}" />
+        <ToolbarItem Text="Lookup lists" Command="{Binding LookupsCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,Auto,*" Padding="20,12" RowSpacing="8" MaximumWidthRequest="860">
+        <Label Text="Forms are designed here and published to devices. Each record keeps the form version it was written with."
+               Style="{StaticResource Muted}" />
+        <Label Grid.Row="1" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+        <RefreshView Grid.Row="2" Command="{Binding LoadCommand}" IsRefreshing="{Binding IsBusy}">
+            <CollectionView ItemsSource="{Binding Forms}" SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <Label Text="No forms yet. Use New form to start from a template." Style="{StaticResource Muted}" HorizontalOptions="Center" Margin="0,40" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:FormRow">
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FormsViewModel}}, Path=EditCommand}"
+                                                      CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding Form.Name}" FontSize="16" FontFamily="OpenSansSemibold" />
+                                    <Label Text="{Binding EntityName}" Style="{StaticResource Muted}" />
+                                    <Label Text="{Binding Form.ContextSpecialty, StringFormat='Specialty: {0}'}" Style="{StaticResource Muted}"
+                                           IsVisible="{Binding Form.ContextSpecialty, Converter={StaticResource IsNotNullConverter}}" />
+                                </VerticalStackLayout>
+                                <Border Grid.Column="1" Style="{StaticResource Badge}" VerticalOptions="Start">
+                                    <Label Text="{Binding Status}" FontSize="12" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

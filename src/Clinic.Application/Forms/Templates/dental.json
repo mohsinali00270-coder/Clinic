@@ -1,0 +1,21 @@
+{ "key": "dental", "name": "Dental consultation", "entityType": "Encounter",
+  "description": "Complaint, tooth-by-tooth findings (FDI numbering) with planned treatment and fees.",
+  "definition": { "entityType": "Encounter", "name": { "en": "Dental", "ur": "دانتوں کا معائنہ" },
+  "sections": [
+    { "key": "complaint", "title": { "en": "Complaint" }, "fields": [
+      { "key": "chief_complaint", "type": "multilineText", "label": { "en": "Chief complaint" }, "required": true, "columns": 3 },
+      { "key": "pain_score", "type": "integer", "label": { "en": "Pain (0–10)" }, "min": 0, "max": 10, "columns": 1,
+        "abnormal": [ { "when": "value >= 7", "severity": "warning" } ] } ] },
+    { "key": "teeth", "title": { "en": "Tooth findings" }, "fields": [
+      { "key": "findings", "type": "repeatingGroup", "label": { "en": "Findings" }, "columns": 4, "maxRows": 32,
+        "fields": [
+          { "key": "tooth", "type": "text", "label": { "en": "Tooth (FDI)" }, "required": true, "pattern": "^[1-8][1-8]$", "patternMessage": { "en": "Use FDI numbering, e.g. 36" } },
+          { "key": "finding", "type": "singleSelect", "label": { "en": "Finding" }, "required": true,
+            "options": [ { "code": "caries", "label": { "en": "Caries" } }, { "code": "fracture", "label": { "en": "Fracture" } }, { "code": "missing", "label": { "en": "Missing" } },
+                         { "code": "mobility", "label": { "en": "Mobility" } }, { "code": "abscess", "label": { "en": "Abscess" } }, { "code": "restored", "label": { "en": "Restored" } } ] },
+          { "key": "treatment", "type": "text", "label": { "en": "Planned treatment" } },
+          { "key": "fee", "type": "decimal", "label": { "en": "Fee" }, "min": 0 } ] },
+      { "key": "teeth_count", "type": "calculated", "label": { "en": "Teeth with findings" }, "decimals": 0, "formula": "len(findings)", "columns": 1 } ] },
+    { "key": "plan", "title": { "en": "Plan" }, "fields": [
+      { "key": "plan", "type": "multilineText", "label": { "en": "Plan / advice" }, "columns": 4 } ] }
+  ] } }

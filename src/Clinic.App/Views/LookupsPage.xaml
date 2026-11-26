@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:f="clr-namespace:Clinic.Shared.Forms;assembly=Clinic.Shared"
+             x:Class="Clinic.App.Views.LookupsPage"
+             x:DataType="vm:LookupsViewModel"
+             Title="Lookup lists">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="New list" Command="{Binding AddCommand}" />
+    </ContentPage.ToolbarItems>
+    <Grid RowDefinitions="Auto,*" Padding="20,12" MaximumWidthRequest="760">
+        <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+        <RefreshView Grid.Row="1" Command="{Binding LoadCommand}" IsRefreshing="{Binding IsBusy}">
+            <CollectionView ItemsSource="{Binding Lists}" SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="f:LookupListDto">
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,8">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LookupsViewModel}}, Path=OpenCommand}"
+                                                      CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding Name}" FontFamily="OpenSansSemibold" />
+                                    <Label Text="{Binding Key}" Style="{StaticResource Muted}" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="1" Text="{Binding ItemCount, StringFormat='{0} items'}" Style="{StaticResource Muted}" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

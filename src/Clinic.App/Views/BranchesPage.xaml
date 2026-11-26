@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:c="clr-namespace:Clinic.Shared.Contracts;assembly=Clinic.Shared"
+             x:Class="Clinic.App.Views.BranchesPage"
+             x:DataType="vm:BranchesViewModel"
+             Title="Branches">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Add branch" Command="{Binding AddCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid RowDefinitions="Auto,*" Padding="20,12" MaximumWidthRequest="760">
+        <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+        <RefreshView Grid.Row="1" Command="{Binding LoadCommand}" IsRefreshing="{Binding IsBusy}">
+            <CollectionView ItemsSource="{Binding Branches}" SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <Label Text="No branches yet." Style="{StaticResource Muted}" HorizontalOptions="Center" Margin="0,40" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="c:BranchDto">
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:BranchesViewModel}}, Path=EditCommand}"
+                                                      CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                                <Border Style="{StaticResource Badge}">
+                                    <Label Text="{Binding Code}" FontFamily="OpenSansSemibold" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="{Binding Name}" FontSize="16" FontFamily="OpenSansSemibold" />
+                                    <Label Text="{Binding Address}" Style="{StaticResource Muted}" />
+                                    <Label Text="{Binding Phone}" Style="{StaticResource Muted}" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="2" Text="Inactive" TextColor="{StaticResource Warning}" VerticalOptions="Center"
+                                       IsVisible="{Binding IsActive, Converter={StaticResource InvertedBoolConverter}}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

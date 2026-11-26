@@ -1,0 +1,21 @@
+{ "key": "vitals_standard", "name": "Vitals (standard)", "entityType": "Vitals",
+  "description": "BP, pulse, temperature, SpO2, weight, height with calculated BMI and abnormal-value flags.",
+  "definition": { "entityType": "Vitals", "name": { "en": "Vitals", "ur": "وائٹلز" },
+  "sections": [ { "key": "vitals", "title": { "en": "Vitals", "ur": "وائٹلز" }, "fields": [
+    { "key": "bp_systolic", "type": "integer", "unit": "mmHg", "label": { "en": "BP systolic" }, "min": 50, "max": 260, "columns": 1, "reportable": true,
+      "abnormal": [ { "when": "value >= 180 || value < 80", "severity": "critical" }, { "when": "value >= 140 || value < 90", "severity": "warning" } ] },
+    { "key": "bp_diastolic", "type": "integer", "unit": "mmHg", "label": { "en": "BP diastolic" }, "min": 30, "max": 160, "columns": 1, "requiredWhen": "!isEmpty(bp_systolic)",
+      "abnormal": [ { "when": "value >= 110", "severity": "critical" }, { "when": "value >= 90 || value < 60", "severity": "warning" } ] },
+    { "key": "pulse", "type": "integer", "unit": "/min", "label": { "en": "Pulse" }, "min": 20, "max": 250, "columns": 1,
+      "abnormal": [ { "when": "value > 130 || value < 40", "severity": "critical" }, { "when": "value > 100 || value < 60", "severity": "warning" } ] },
+    { "key": "temperature", "type": "decimal", "unit": "°C", "decimals": 1, "label": { "en": "Temperature" }, "min": 30, "max": 45, "columns": 1,
+      "abnormal": [ { "when": "value >= 39.5 || value < 35", "severity": "critical" }, { "when": "value >= 37.8", "severity": "warning", "message": { "en": "Fever" } } ] },
+    { "key": "spo2", "type": "integer", "unit": "%", "label": { "en": "SpO2" }, "min": 50, "max": 100, "columns": 1,
+      "abnormal": [ { "when": "value < 94", "severity": "critical", "message": { "en": "Low oxygen saturation" } } ] },
+    { "key": "respiratory_rate", "type": "integer", "unit": "/min", "label": { "en": "Respiratory rate" }, "min": 5, "max": 80, "columns": 1,
+      "abnormal": [ { "when": "value > 24 || value < 10", "severity": "warning" } ] },
+    { "key": "weight_kg", "type": "decimal", "unit": "kg", "decimals": 1, "label": { "en": "Weight" }, "min": 0.3, "max": 400, "columns": 1, "carryForward": true },
+    { "key": "height_cm", "type": "decimal", "unit": "cm", "decimals": 1, "label": { "en": "Height" }, "min": 20, "max": 250, "columns": 1, "carryForward": true },
+    { "key": "bmi", "type": "calculated", "label": { "en": "BMI" }, "decimals": 1, "formula": "weight_kg / (height_cm/100)^2", "columns": 1, "visibleWhen": "ageYears >= 2",
+      "abnormal": [ { "when": "value >= 30 || value < 16", "severity": "critical" }, { "when": "value >= 25 || value < 18.5", "severity": "warning" } ] }
+  ] } ] } }
