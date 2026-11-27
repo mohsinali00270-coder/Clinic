@@ -40,6 +40,9 @@ public sealed class SyncEngineOptions
     public IReadOnlyList<string> LeaseKinds { get; set; } = NumberRangeKinds.All.ToList();
     public int LeaseSize { get; set; } = 500;
     public double TopUpThreshold { get; set; } = 0.2;
+
+    /// <summary>FR-SYN-23: start an empty device from the server snapshot instead of paging from zero.</summary>
+    public bool UseSnapshot { get; set; } = true;
 }
 
 /// <summary>
@@ -86,6 +89,7 @@ public sealed class SyncEngine(
                 await db.Connection.ExecuteAsync("UPDATE Outbox SET NextAttemptAt = NULL WHERE Status = ?", (int)OutboxStatus.Failed);
 
             await PushAsync(changedTypes, ct);
+            await ReportResolutionsAsync(ct);
             await PullAsync(changedTypes, ct);
             await TopUpNumbersAsync(ct);
 
@@ -199,6 +203,7 @@ public sealed class SyncEngine(
                             entry.Status = conflict ? OutboxStatus.Conflict : OutboxStatus.Rejected;
                             entry.LastError = result.Error;
                             entry.ServerData = result.ServerData?.ToJsonString(LocalJson.Options);
+                            entry.ConflictId = result.ConflictId ?? entry.ConflictId;
                             entry.Attempts++;
                             c.Update(entry);
                             LocalApplier.SetRowStatus(c, local, entry.RecordId, conflict ? SyncStatus.Conflict : SyncStatus.Error);
@@ -253,6 +258,7 @@ public sealed class SyncEngine(
     {
         var checkpoint = (await db.Connection.FindAsync<SyncCheckpoint>(CheckpointScope))?.Value ?? 0;
         var resets = 0;
+        if (checkpoint == 0 && _options.UseSnapshot) checkpoint = await ApplySnapshotAsync(changedTypes, ct);
 
         while (true)
         {
@@ -264,54 +270,91 @@ public sealed class SyncEngine(
                 // keeping only rows with unsynced local changes.
                 if (++resets > 1) throw new InvalidOperationException("The server asked for a reset twice in a row.");
                 await ResetLocalAsync();
-                checkpoint = 0;
+                checkpoint = _options.UseSnapshot ? await ApplySnapshotAsync(changedTypes, ct) : 0;
                 continue;
             }
 
-            var now = Now;
-            await db.Connection.RunInTransactionAsync(c =>
-            {
-                foreach (var entry in LocalSyncRegistry.All.OrderBy(e => e.Order))
-                {
-                    if (!page.Entities.TryGetValue(entry.Name, out var rows)) continue;
-                    foreach (var json in rows) LocalApplier.ApplyServerRow(c, entry, json, now);
-                    if (rows.Count > 0) changedTypes.Add(entry.Name);
-                }
-
-                // FR-DYN-31: refresh the DynamicData snapshot of records whose values arrived.
-                if (page.Entities.TryGetValue(SyncEntityNames.FieldValue, out var values) && values.Count > 0)
-                {
-                    Forms.DynamicSnapshots.RebuildAll(c, values.Select(v =>
-                        (v["entityType"]!.GetValue<string>(), v["recordId"]!.GetValue<Guid>())));
-                }
-
-                // FR-PAT-03: keep the patient search index in step with pulled patients and their dynamic values.
-                var touchedPatients = new List<Guid>();
-                if (page.Entities.TryGetValue(SyncEntityNames.Patient, out var patients))
-                    touchedPatients.AddRange(patients.Select(p => p["id"]!.GetValue<Guid>()));
-                if (page.Entities.TryGetValue(SyncEntityNames.FieldValue, out var fieldValues))
-                    touchedPatients.AddRange(fieldValues
-                        .Where(v => v["entityType"]!.GetValue<string>() == SyncEntityNames.Patient)
-                        .Select(v => v["recordId"]!.GetValue<Guid>()));
-                touchedPatients.AddRange(page.Tombstones.Where(t => t.EntityType == SyncEntityNames.Patient).Select(t => t.RecordId));
-
-                foreach (var tombstone in page.Tombstones)
-                {
-                    var entry = LocalSyncRegistry.Find(tombstone.EntityType);
-                    if (entry is null) continue;
-                    LocalApplier.ApplyTombstone(c, entry, tombstone, now);
-                    changedTypes.Add(entry.Name);
-                }
-
-                if (touchedPatients.Count > 0) Clinical.PatientSearchIndex.Reindex(c, touchedPatients);
-
-                // FR-SYN-21: the checkpoint commits with the page, so an interrupted pull resumes here.
-                c.InsertOrReplace(new SyncCheckpoint { Scope = CheckpointScope, Value = page.Checkpoint, UpdatedAt = now });
-            });
+            await ApplyPageAsync(page, changedTypes);
 
             checkpoint = page.Checkpoint;
             if (!page.HasMore) return;
         }
+    }
+
+    /// <summary>Applies one page of server rows and its checkpoint in one transaction (FR-SYN-21).</summary>
+    private async Task ApplyPageAsync(SyncPullResponse page, HashSet<string> changedTypes)
+    {
+        var now = Now;
+        await db.Connection.RunInTransactionAsync(c =>
+        {
+            foreach (var entry in LocalSyncRegistry.All.OrderBy(e => e.Order))
+            {
+                if (!page.Entities.TryGetValue(entry.Name, out var rows)) continue;
+                foreach (var json in rows) LocalApplier.ApplyServerRow(c, entry, json, now);
+                if (rows.Count > 0) changedTypes.Add(entry.Name);
+            }
+
+            // FR-DYN-31: refresh the DynamicData snapshot of records whose values arrived.
+            if (page.Entities.TryGetValue(SyncEntityNames.FieldValue, out var values) && values.Count > 0)
+            {
+                Forms.DynamicSnapshots.RebuildAll(c, values.Select(v =>
+                    (v["entityType"]!.GetValue<string>(), v["recordId"]!.GetValue<Guid>())));
+            }
+
+            // FR-PAT-03: keep the patient search index in step with pulled patients and their dynamic values.
+            var touchedPatients = new List<Guid>();
+            if (page.Entities.TryGetValue(SyncEntityNames.Patient, out var patients))
+                touchedPatients.AddRange(patients.Select(p => p["id"]!.GetValue<Guid>()));
+            if (page.Entities.TryGetValue(SyncEntityNames.FieldValue, out var fieldValues))
+                touchedPatients.AddRange(fieldValues
+                    .Where(v => v["entityType"]!.GetValue<string>() == SyncEntityNames.Patient)
+                    .Select(v => v["recordId"]!.GetValue<Guid>()));
+            touchedPatients.AddRange(page.Tombstones.Where(t => t.EntityType == SyncEntityNames.Patient).Select(t => t.RecordId));
+
+            foreach (var tombstone in page.Tombstones)
+            {
+                var entry = LocalSyncRegistry.Find(tombstone.EntityType);
+                if (entry is null) continue;
+                LocalApplier.ApplyTombstone(c, entry, tombstone, now);
+                changedTypes.Add(entry.Name);
+            }
+
+            if (touchedPatients.Count > 0) Clinical.PatientSearchIndex.Reindex(c, touchedPatients);
+
+            // FR-SYN-21: the checkpoint commits with the page, so an interrupted pull resumes here.
+            c.InsertOrReplace(new SyncCheckpoint { Scope = CheckpointScope, Value = page.Checkpoint, UpdatedAt = now });
+        });
+    }
+
+    /// <summary>
+    /// FR-SYN-23: a device starting from nothing downloads one compressed snapshot (the same pages, as NDJSON) instead
+    /// of paging through the API, then continues with incremental pulls from the snapshot's checkpoint.
+    /// </summary>
+    private async Task<long> ApplySnapshotAsync(HashSet<string> changedTypes, CancellationToken ct)
+    {
+        await using var stream = await transport.SnapshotAsync(ct);
+        if (stream is null) return 0;
+        using var reader = new StreamReader(stream);
+        long checkpoint = 0;
+        while (await reader.ReadLineAsync(ct) is { } line)
+        {
+            if (line.Length == 0) continue;
+            var page = System.Text.Json.JsonSerializer.Deserialize<SyncPullResponse>(line, LocalJson.Options)
+                       ?? throw new InvalidOperationException("The snapshot is damaged.");
+            await ApplyPageAsync(page, changedTypes);
+            checkpoint = page.Checkpoint;
+        }
+        return checkpoint;
+    }
+
+    /// <summary>FR-SYN-30/31: tell the server which conflicts were settled (after their resolving changes were pushed).</summary>
+    private async Task ReportResolutionsAsync(CancellationToken ct)
+    {
+        var pending = await db.Connection.Table<PendingConflictResolution>().OrderBy(r => r.Seq).ToListAsync();
+        if (pending.Count == 0) return;
+        await transport.ReportResolutionsAsync(pending.Select(r => new ConflictResolutionReport(r.ConflictId, r.Resolution,
+            LocalJson.Parse(r.ValuesJson), new DateTimeOffset(DateTime.SpecifyKind(r.ResolvedAt, DateTimeKind.Utc)))).ToList(), ct);
+        foreach (var r in pending) await db.Connection.DeleteAsync<PendingConflictResolution>(r.Seq);
     }
 
     private async Task ResetLocalAsync()

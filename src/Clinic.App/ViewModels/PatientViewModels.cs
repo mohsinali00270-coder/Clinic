@@ -58,8 +58,41 @@ public sealed partial class PatientsViewModel(SyncCoordinator sync, SessionStore
 }
 
 /// <summary>FR-PAT-01/04: register or edit — core fields, duplicate warning, and the Patient dynamic form.</summary>
-public sealed partial class PatientEditViewModel(SyncCoordinator sync, SessionStore session) : ViewModelBase, IQueryAttributable
+public sealed partial class PatientEditViewModel(SyncCoordinator sync, SessionStore session, DocumentScanner scanner) : ViewModelBase, IQueryAttributable
 {
+    public bool CanScan => scanner.IsSupported;
+
+    /// <summary>
+    /// FR-AI-21: photograph a CNIC / B-form / old prescription; name, DOB, gender, phone and CNIC are proposed and only
+    /// the ticked ones are filled in.
+    /// </summary>
+    [RelayCommand]
+    private async Task ScanIdAsync()
+    {
+        var text = await scanner.ScanAsync();
+        if (string.IsNullOrWhiteSpace(text)) return;
+        var id = Clinic.Client.Core.Assist.OcrExtraction.ExtractIdentity(text);
+        var proposals = new List<Clinic.Client.Core.Assist.OcrProposal>();
+        void Add(string key, string label, string? value) { if (value is not null) proposals.Add(new(key, label, JsonValue.Create(value)!, value, 0.9)); }
+        Add("@name", "Name", id.FullName);
+        Add("@dob", "Date of birth", id.DateOfBirth?.ToString("dd MMM yyyy"));
+        Add("@gender", "Gender", id.Gender);
+        Add("@phone", "Phone", id.Phone);
+        if (FormModel is { } m)
+            proposals.AddRange(Clinic.Client.Core.Assist.OcrExtraction.ProposeForForm(text, m.Definition).Where(p => p.FieldKey != "emergency_phone"));
+        foreach (var p in await OcrReview.ChooseAsync(proposals))
+        {
+            switch (p.FieldKey)
+            {
+                case "@name": FullName = id.FullName!; break;
+                case "@dob": UseAge = false; DateOfBirth = id.DateOfBirth; break;
+                case "@gender": Gender = id.Gender; break;
+                case "@phone": Phone = id.Phone; break;
+                default: FormModel?.SetValue(p.FieldKey, p.Value); break;
+            }
+        }
+    }
+
     private Guid? _patientId;
     private FormVersionInfo? _version;
     private Dictionary<string, List<LocalLookupItem>>? _lookups;
@@ -194,7 +227,11 @@ public sealed partial class PatientEditViewModel(SyncCoordinator sync, SessionSt
 public sealed record TimelineRow(TimelineItem Item)
 {
     public string When => Item.At.ToLocalTime().ToString("dd MMM yyyy HH:mm");
-    public string Icon => Item.Kind switch { "appointment" => "📅", "file" => "📎", "encounter" => "🩺", _ => "🆕" };
+    public string Icon => Item.Kind switch
+    {
+        "appointment" => "📅", "file" => "📎", "encounter" => "🩺", "case" => "📁", "procedure" => "💉", "admission" => "🛏",
+        "referral" => "↗", "lab" => "🧪", "invoice" => "🧾", "message" => "✉", "package" => "🎟", _ => "🆕",
+    };
 }
 
 /// <summary>FR-PAT-05/06: patient summary, timeline, files, and quick booking / walk-in.</summary>
@@ -205,6 +242,7 @@ public sealed partial class PatientViewModel(SyncCoordinator sync, SessionStore 
 
     public ObservableCollection<TimelineRow> Timeline { get; } = [];
     public ObservableCollection<LocalAttachment> Files { get; } = [];
+    public ObservableCollection<CareRow> Cases { get; } = [];
 
     [ObservableProperty] public partial string Name { get; set; } = "";
     [ObservableProperty] public partial string Details { get; set; } = "";
@@ -215,6 +253,57 @@ public sealed partial class PatientViewModel(SyncCoordinator sync, SessionStore 
     public bool CanBook => session.Has(Permissions.Appointments.Book);
     public bool CanUpload => session.Has(Permissions.Attachments.Upload);
     public bool CanConsult => session.Has(Permissions.Encounters.Edit);
+    public bool CanOpenCase => session.Has(Permissions.Cases.Manage);
+    public bool CanRefer => session.Has(Permissions.Referrals.Manage);
+    public bool CanDoProcedures => session.Has(Permissions.Procedures.Perform);
+    public bool CanAdmit => session.Has(Permissions.Admissions.Manage);
+    public bool CanBill => session.Has(Permissions.Billing.Collect);
+    public bool CanOrderLabs => session.Has(Permissions.Labs.Order);
+    public bool CanMessage => session.Has(Permissions.Messages.Send);
+    public bool CanFeedback => session.Has(Permissions.Feedback.Record);
+    public bool CanDispense => session.Has(Permissions.Prescriptions.Dispense);
+
+    [RelayCommand]
+    private Task DispenseAsync() => Ui.GoToAsync(Routes.Dispense, PatientQuery);
+
+    [RelayCommand]
+    private Task SendMessageAsync() => RunAsync(() => EngagementUi.SendMessageAsync(sync, session, _patientId));
+
+    [RelayCommand]
+    private Task PreferencesAsync() => RunAsync(() => EngagementUi.EditPreferenceAsync(sync, _patientId));
+
+    [RelayCommand]
+    private async Task FeedbackAsync()
+    {
+        if (await RunAsync(() => EngagementUi.RecordFeedbackAsync(sync, _patientId))) await LoadAsync();
+    }
+
+    [RelayCommand]
+    private Task BillingAsync() => Ui.GoToAsync(Routes.PatientBilling, PatientQuery);
+
+    /// <summary>FR-LAB-02: tests without a consultation (e.g. a walk-in for blood work).</summary>
+    [RelayCommand]
+    private async Task OrderTestsAsync()
+    {
+        if (await RunAsync(async () => await LabUi.OrderAsync(sync, session, _patientId, null))) await LoadAsync();
+    }
+
+    private Dictionary<string, object> PatientQuery => new() { ["patientId"] = _patientId };
+
+    [RelayCommand]
+    private Task OpenNewCaseAsync() => Ui.GoToAsync(Routes.Case, PatientQuery);
+
+    [RelayCommand]
+    private Task ReferAsync() => Ui.GoToAsync(Routes.Referral, PatientQuery);
+
+    [RelayCommand]
+    private Task NewProcedureAsync() => Ui.GoToAsync(Routes.Procedure, PatientQuery);
+
+    [RelayCommand]
+    private Task AdmitAsync() => Ui.GoToAsync(Routes.Admission, PatientQuery);
+
+    [RelayCommand]
+    private Task OpenCaseAsync(CareRow row) => Ui.GoToAsync(Routes.Case, new Dictionary<string, object> { ["caseId"] = row.Id });
 
     /// <summary>Starts a consultation with the signed-in doctor (or a chosen one).</summary>
     [RelayCommand]
@@ -234,18 +323,43 @@ public sealed partial class PatientViewModel(SyncCoordinator sync, SessionStore 
     }
 
     [RelayCommand]
-    private Task OpenTimelineAsync(TimelineRow row) => row.Item.Kind == "encounter" && row.Item.RecordId is { } id
-        ? Ui.GoToAsync(Routes.Encounter, new Dictionary<string, object> { ["encounterId"] = id })
-        : Task.CompletedTask;
+    private Task OpenTimelineAsync(TimelineRow row) => (row.Item.Kind, row.Item.RecordId) switch
+    {
+        ("encounter", { } id) => Ui.GoToAsync(Routes.Encounter, new Dictionary<string, object> { ["encounterId"] = id }),
+        ("case", { } id) => Ui.GoToAsync(Routes.Case, new Dictionary<string, object> { ["caseId"] = id }),
+        ("procedure", { } id) => Ui.GoToAsync(Routes.Procedure, new Dictionary<string, object> { ["procedureId"] = id }),
+        ("admission", { } id) => Ui.GoToAsync(Routes.Admission, new Dictionary<string, object> { ["admissionId"] = id }),
+        ("referral", { } id) => Ui.GoToAsync(Routes.Referral, new Dictionary<string, object> { ["referralId"] = id }),
+        ("invoice", { } id) => Ui.GoToAsync(Routes.Invoice, new Dictionary<string, object> { ["invoiceId"] = id }),
+        ("lab", { } id) => RunAsync(() => LabUi.PrintReportAsync(sync, session, id)),
+        _ => Task.CompletedTask,
+    };
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        if (query.TryGetValue("patientId", out var v) && v is Guid id) _patientId = id;
+        if (query.TryGetValue("patientId", out var v) && v is Guid id && id != _patientId)
+        {
+            _patientId = id;
+            _ = RecordOpenAsync(id);
+        }
         if (!_subscribed) { sync.DataChanged += OnDataChanged; _subscribed = true; }
         LoadCommand.Execute(null);
     }
 
     private void OnDataChanged(object? sender, IReadOnlyCollection<string> types) => LoadCommand.Execute(null);
+
+    /// <summary>FR-SEC-07: opening a patient record is logged (on the device, synced to the audit trail).</summary>
+    private async Task RecordOpenAsync(Guid patientId)
+    {
+        try
+        {
+            if (await sync.Store.GetAsync<LocalPatient>(patientId) is { } p) await sync.Patients.RecordOpenAsync(p.Id, p.BranchId);
+        }
+        catch (Exception ex)
+        {
+            Services.ClientErrorReporter.Record("audit", ex);
+        }
+    }
 
     [RelayCommand]
     private Task LoadAsync() => RunAsync(async () =>
@@ -270,6 +384,15 @@ public sealed partial class PatientViewModel(SyncCoordinator sync, SessionStore 
         foreach (var t in await sync.Patients.TimelineAsync(_patientId)) Timeline.Add(new TimelineRow(t));
         Files.Clear();
         foreach (var f in await sync.Store.ListAsync<LocalAttachment>(a => a.RecordId == _patientId)) Files.Add(f);
+        Cases.Clear();
+        if (session.Has(Permissions.Cases.View))
+            foreach (var c in await sync.Cases.ForPatientAsync(_patientId))
+            {
+                var progress = await sync.Cases.ProgressAsync(c.Id);
+                Cases.Add(new CareRow(c.Id, c.Title, $"{Clinic.Shared.Clinical.CaseStatus.Display(c.Status)} · {progress.SessionsDone}" +
+                    (progress.SessionsPlanned is { } sp ? $"/{sp}" : "") + " sessions" +
+                    (progress.OverdueSteps.Count > 0 ? $" · {progress.OverdueSteps.Count} overdue" : ""), progress.OverdueSteps.Count > 0));
+            }
         OnPropertyChanged(nameof(CanEdit));
     });
 

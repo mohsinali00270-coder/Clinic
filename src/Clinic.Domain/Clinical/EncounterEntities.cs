@@ -14,6 +14,9 @@ public class Encounter : SyncEntity, IHasDynamicData
     public Guid BranchId { get; set; }
     public Guid? AppointmentId { get; set; }
 
+    /// <summary>FR-CASE-03: the case this visit belongs to (one case per visit).</summary>
+    public Guid? CaseId { get; set; }
+
     /// <summary>Specialty code used to pick the form (e.g. "dental").</summary>
     public string Specialty { get; set; } = "";
     public DateTime StartedAt { get; set; }

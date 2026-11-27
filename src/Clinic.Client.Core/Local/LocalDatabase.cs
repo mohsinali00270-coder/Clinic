@@ -10,7 +10,7 @@ namespace Clinic.Client.Core.Local;
 /// </summary>
 public sealed class LocalDatabase : IAsyncDisposable
 {
-    public const int SchemaVersion = 4;
+    public const int SchemaVersion = 9;
 
     private LocalDatabase(string path, SQLiteAsyncConnection connection)
     {
@@ -63,6 +63,7 @@ public sealed class LocalDatabase : IAsyncDisposable
             await Connection.CreateTableAsync(entry.LocalType);
 
         await Connection.CreateTableAsync<OutboxEntry>();
+        await Connection.CreateTableAsync<PendingConflictResolution>();
         await Connection.CreateTableAsync<SyncCheckpoint>();
         await Connection.CreateTableAsync<LeasedRange>();
         await Connection.CreateTableAsync<LocalMeta>();

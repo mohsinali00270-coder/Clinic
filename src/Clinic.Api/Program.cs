@@ -14,9 +14,37 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
+
+// ---- Observability (§11): Serilog structured logs + OpenTelemetry traces and metrics ----
+// Defaults first (the "Serilog" config section overrides them): SQL text and framework chatter stay out of the logs.
+builder.Host.UseSerilog((ctx, services, log) => log
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("System.Net.Http", Serilog.Events.LogEventLevel.Warning)
+    .ReadFrom.Configuration(ctx.Configuration)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("service", "clinic-api")
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj} {Properties:j}{NewLine}{Exception}"));
+var otel = builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r.AddService("clinic-api"))
+    .WithTracing(t => t.AddAspNetCoreInstrumentation(o => o.Filter = h => h.Request.Path != "/health")
+        .AddHttpClientInstrumentation().AddSource(SyncTelemetry.SourceName))
+    .WithMetrics(m => m.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddMeter(SyncTelemetry.MeterName));
+// Exported only where a collector is configured (OTEL_EXPORTER_OTLP_ENDPOINT or OpenTelemetry:OtlpEndpoint).
+if (config["OTEL_EXPORTER_OTLP_ENDPOINT"] is { Length: > 0 } || config["OpenTelemetry:OtlpEndpoint"] is { Length: > 0 })
+{
+    var endpoint = config["OpenTelemetry:OtlpEndpoint"];
+    otel.WithTracing(t => t.AddOtlpExporter(o => { if (endpoint is { Length: > 0 }) o.Endpoint = new Uri(endpoint); }))
+        .WithMetrics(m => m.AddOtlpExporter(o => { if (endpoint is { Length: > 0 }) o.Endpoint = new Uri(endpoint); }));
+}
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(config);
@@ -85,6 +113,8 @@ builder.WebHost.ConfigureKestrel(k => k.Limits.MaxRequestBodySize = 50 * 1024 * 
 builder.Services.AddHealthChecks().AddDbContextCheck<ClinicDbContext>();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
+builder.Services.AddHostedService<Clinic.Api.Infrastructure.MessageDispatchWorker>(); // FR-COM-03
+builder.Services.AddHostedService<Clinic.Api.Infrastructure.MaintenanceWorker>(); // FR-SYN-24
 builder.Services.AddSingleton<Clinic.Application.Clinical.IChangeNotifier, Clinic.Api.Realtime.SignalRChangeNotifier>();
 builder.Services.AddOpenApi();
 
@@ -92,6 +122,9 @@ var app = builder.Build();
 
 await DbInitializer.InitializeAsync(app.Services);
 
+app.UseSerilogRequestLogging(o => o.GetLevel = (http, _, ex) =>
+    ex is not null || http.Response.StatusCode >= 500 ? Serilog.Events.LogEventLevel.Error
+    : http.Request.Path == "/health" ? Serilog.Events.LogEventLevel.Verbose : Serilog.Events.LogEventLevel.Information);
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseRequestDecompression();

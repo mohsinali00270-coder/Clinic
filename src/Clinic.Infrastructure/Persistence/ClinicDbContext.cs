@@ -38,7 +38,8 @@ public sealed class ClinicDbContext(
     /// <summary>Infrastructure tables that are never audited.</summary>
     private static readonly HashSet<Type> UnauditedTypes =
     [
-        typeof(AuditLog), typeof(RefreshToken), typeof(ChangeLog), typeof(SyncCounter), typeof(SyncLog), typeof(NumberCounter),
+        typeof(AuditLog), typeof(RefreshToken), typeof(ChangeLog), typeof(SyncConflict), typeof(SyncCounter), typeof(SyncLog), typeof(NumberCounter),
+        typeof(Domain.Clinical.ClientError),
     ];
 
     private bool _hasTenantOverride;
@@ -56,6 +57,7 @@ public sealed class ClinicDbContext(
     public DbSet<Device> Devices => Set<Device>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<ChangeLog> ChangeLogs => Set<ChangeLog>();
+    public DbSet<SyncConflict> SyncConflicts => Set<SyncConflict>();
     public DbSet<SyncCounter> SyncCounters => Set<SyncCounter>();
     public DbSet<SyncLog> SyncLogs => Set<SyncLog>();
     public DbSet<NumberCounter> NumberCounters => Set<NumberCounter>();
@@ -84,6 +86,50 @@ public sealed class ClinicDbContext(
     public DbSet<Domain.Clinical.Prescription> Prescriptions => Set<Domain.Clinical.Prescription>();
     public DbSet<Domain.Clinical.PrescriptionItem> PrescriptionItems => Set<Domain.Clinical.PrescriptionItem>();
     public DbSet<Domain.Clinical.PrescriptionTemplate> PrescriptionTemplates => Set<Domain.Clinical.PrescriptionTemplate>();
+    public DbSet<Domain.Clinical.CaseType> CaseTypes => Set<Domain.Clinical.CaseType>();
+    public DbSet<Domain.Clinical.PatientCase> Cases => Set<Domain.Clinical.PatientCase>();
+    public DbSet<Domain.Clinical.CarePlanStep> CarePlanSteps => Set<Domain.Clinical.CarePlanStep>();
+    public DbSet<Domain.Clinical.CaseMember> CaseMembers => Set<Domain.Clinical.CaseMember>();
+    public DbSet<Domain.Clinical.CaseNote> CaseNotes => Set<Domain.Clinical.CaseNote>();
+    public DbSet<Domain.Clinical.Referral> Referrals => Set<Domain.Clinical.Referral>();
+    public DbSet<Domain.Clinical.ProcedureType> ProcedureTypes => Set<Domain.Clinical.ProcedureType>();
+    public DbSet<Domain.Clinical.ProcedureRecord> Procedures => Set<Domain.Clinical.ProcedureRecord>();
+    public DbSet<Domain.Clinical.Bed> Beds => Set<Domain.Clinical.Bed>();
+    public DbSet<Domain.Clinical.Admission> Admissions => Set<Domain.Clinical.Admission>();
+    public DbSet<Domain.Clinical.BedTransfer> BedTransfers => Set<Domain.Clinical.BedTransfer>();
+    public DbSet<Domain.Clinical.NursingNote> NursingNotes => Set<Domain.Clinical.NursingNote>();
+    public DbSet<Domain.Clinical.MedicationOrder> MedicationOrders => Set<Domain.Clinical.MedicationOrder>();
+    public DbSet<Domain.Clinical.MedicationDose> MedicationDoses => Set<Domain.Clinical.MedicationDose>();
+    public DbSet<Domain.Clinical.LabTest> LabTests => Set<Domain.Clinical.LabTest>();
+    public DbSet<Domain.Clinical.LabOrder> LabOrders => Set<Domain.Clinical.LabOrder>();
+    public DbSet<Domain.Clinical.LabResult> LabResults => Set<Domain.Clinical.LabResult>();
+    public DbSet<Domain.Clinical.ServiceItem> ServiceItems => Set<Domain.Clinical.ServiceItem>();
+    public DbSet<Domain.Clinical.Invoice> Invoices => Set<Domain.Clinical.Invoice>();
+    public DbSet<Domain.Clinical.InvoiceLine> InvoiceLines => Set<Domain.Clinical.InvoiceLine>();
+    public DbSet<Domain.Clinical.Payment> Payments => Set<Domain.Clinical.Payment>();
+    public DbSet<Domain.Clinical.CashClosing> CashClosings => Set<Domain.Clinical.CashClosing>();
+    public DbSet<Domain.Clinical.PackagePlan> PackagePlans => Set<Domain.Clinical.PackagePlan>();
+    public DbSet<Domain.Clinical.PatientPackage> PatientPackages => Set<Domain.Clinical.PatientPackage>();
+    public DbSet<Domain.Clinical.PackageUsage> PackageUsages => Set<Domain.Clinical.PackageUsage>();
+    public DbSet<Domain.Clinical.Payer> Payers => Set<Domain.Clinical.Payer>();
+    public DbSet<Domain.Clinical.PatientPanel> PatientPanels => Set<Domain.Clinical.PatientPanel>();
+    public DbSet<Domain.Clinical.PayerSettlement> PayerSettlements => Set<Domain.Clinical.PayerSettlement>();
+    public DbSet<Domain.Clinical.CreditNote> CreditNotes => Set<Domain.Clinical.CreditNote>();
+    public DbSet<Domain.Clinical.Expense> Expenses => Set<Domain.Clinical.Expense>();
+    public DbSet<Domain.Clinical.DoctorShareRule> DoctorShareRules => Set<Domain.Clinical.DoctorShareRule>();
+    public DbSet<Domain.Clinical.DoctorPayout> DoctorPayouts => Set<Domain.Clinical.DoctorPayout>();
+    public DbSet<Domain.Clinical.MessageTemplate> MessageTemplates => Set<Domain.Clinical.MessageTemplate>();
+    public DbSet<Domain.Clinical.ContactPreference> ContactPreferences => Set<Domain.Clinical.ContactPreference>();
+    public DbSet<Domain.Clinical.OutboundMessage> OutboundMessages => Set<Domain.Clinical.OutboundMessage>();
+    public DbSet<Domain.Clinical.Feedback> Feedback => Set<Domain.Clinical.Feedback>();
+    public DbSet<Domain.Clinical.Complaint> Complaints => Set<Domain.Clinical.Complaint>();
+    public DbSet<Domain.Clinical.InventoryItem> InventoryItems => Set<Domain.Clinical.InventoryItem>();
+    public DbSet<Domain.Clinical.StockBatch> StockBatches => Set<Domain.Clinical.StockBatch>();
+    public DbSet<Domain.Clinical.StockMovement> StockMovements => Set<Domain.Clinical.StockMovement>();
+    public DbSet<Domain.Clinical.Dispensation> Dispensations => Set<Domain.Clinical.Dispensation>();
+    public DbSet<Domain.Clinical.PatientMerge> PatientMerges => Set<Domain.Clinical.PatientMerge>();
+    public DbSet<Domain.Clinical.AccessEvent> AccessEvents => Set<Domain.Clinical.AccessEvent>();
+    public DbSet<Domain.Clinical.ClientError> ClientErrors => Set<Domain.Clinical.ClientError>();
 
     /// <summary>
     /// Read by the global query filters on every query. EF re-evaluates it per execution,

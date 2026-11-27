@@ -28,6 +28,18 @@ public sealed partial class SyncCoordinator(AppSettings settings, SessionStore s
     private Clinic.Client.Core.Clinical.HttpFileTransport? _files;
     private Clinic.Client.Core.Clinical.EncounterService? _encounters;
     private Clinic.Client.Core.Clinical.PrescriptionService? _prescriptions;
+    private Clinic.Client.Core.Clinical.CaseService? _cases;
+    private Clinic.Client.Core.Clinical.ReferralService? _referrals;
+    private Clinic.Client.Core.Clinical.FollowUpService? _followUps;
+    private Clinic.Client.Core.Clinical.ProcedureService? _procedures;
+    private Clinic.Client.Core.Clinical.DayCareService? _dayCare;
+    private Clinic.Client.Core.Clinical.LabService? _labs;
+    private Clinic.Client.Core.Clinical.BillingService? _billing;
+    private Clinic.Client.Core.Clinical.MessagingService? _messaging;
+    private Clinic.Client.Core.Clinical.ExpenseService? _expenses;
+    private Clinic.Client.Core.Clinical.FeedbackService? _feedback;
+    private Clinic.Client.Core.Clinical.InventoryService? _inventory;
+    private Clinic.Client.Core.Clinical.ReportService? _reports;
     private SyncNudgeClient? _nudges;
     private HttpClient? _http;
     private CancellationTokenSource? _cts;
@@ -44,6 +56,18 @@ public sealed partial class SyncCoordinator(AppSettings settings, SessionStore s
     public Clinic.Client.Core.Clinical.IFileTransport Files => _files ?? throw new InvalidOperationException("Sign in first.");
     public Clinic.Client.Core.Clinical.EncounterService Encounters => _encounters ?? throw new InvalidOperationException("Sign in first.");
     public Clinic.Client.Core.Clinical.PrescriptionService Prescriptions => _prescriptions ?? throw new InvalidOperationException("Sign in first.");
+    public Clinic.Client.Core.Clinical.CaseService Cases => _cases ?? throw new InvalidOperationException("Sign in first.");
+    public Clinic.Client.Core.Clinical.ReferralService Referrals => _referrals ?? throw new InvalidOperationException("Sign in first.");
+    public Clinic.Client.Core.Clinical.FollowUpService FollowUps => _followUps ?? throw new InvalidOperationException("Sign in first.");
+    public Clinic.Client.Core.Clinical.ProcedureService Procedures => _procedures ?? throw new InvalidOperationException("Sign in first.");
+    public Clinic.Client.Core.Clinical.DayCareService DayCare => _dayCare ?? throw new InvalidOperationException("Sign in first.");
+    public Clinic.Client.Core.Clinical.LabService Labs => _labs ?? throw new InvalidOperationException("Sign in first.");
+    public Clinic.Client.Core.Clinical.BillingService Billing => _billing ?? throw new InvalidOperationException("Sign in first.");
+    public Clinic.Client.Core.Clinical.MessagingService Messaging => _messaging ?? throw new InvalidOperationException("Sign in first.");
+    public Clinic.Client.Core.Clinical.ExpenseService Expenses => _expenses ?? throw new InvalidOperationException("Sign in first.");
+    public Clinic.Client.Core.Clinical.FeedbackService Feedback => _feedback ?? throw new InvalidOperationException("Sign in first.");
+    public Clinic.Client.Core.Clinical.InventoryService Inventory => _inventory ?? throw new InvalidOperationException("Sign in first.");
+    public Clinic.Client.Core.Clinical.ReportService Reports => _reports ?? throw new InvalidOperationException("Sign in first.");
 
     /// <summary>Branch the user is working at (first assigned branch unless changed on the Notes/Queue screens).</summary>
     public Guid CurrentBranchId => Guid.TryParse(Preferences.Default.Get("current_branch", ""), out var b) &&
@@ -74,7 +98,7 @@ public sealed partial class SyncCoordinator(AppSettings settings, SessionStore s
         _db = await LocalDatabase.OpenAsync(DatabasePath(tenantId), await GetOrCreateKeyAsync(tenantId));
 
         var context = new ClientContext(tenantId, me.UserId, device.DeviceId, DeviceIdentity.AppVersion);
-        _http = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All })
+        _http = new HttpClient(SecureHttp.CreateHandler(settings))
         {
             BaseAddress = new Uri(settings.ServerUrl + "/"),
             Timeout = TimeSpan.FromSeconds(60),
@@ -92,9 +116,25 @@ public sealed partial class SyncCoordinator(AppSettings settings, SessionStore s
         _files = new Clinic.Client.Core.Clinical.HttpFileTransport(_http, api.GetAccessTokenAsync);
         _encounters = new Clinic.Client.Core.Clinical.EncounterService(_store, _forms);
         _prescriptions = new Clinic.Client.Core.Clinical.PrescriptionService(_store, _forms, _encounters);
+        _cases = new Clinic.Client.Core.Clinical.CaseService(_store, _forms);
+        _referrals = new Clinic.Client.Core.Clinical.ReferralService(_store, _forms);
+        _followUps = new Clinic.Client.Core.Clinical.FollowUpService(_store);
+        _procedures = new Clinic.Client.Core.Clinical.ProcedureService(_store, _forms, _attachments);
+        _dayCare = new Clinic.Client.Core.Clinical.DayCareService(_store);
+        _labs = new Clinic.Client.Core.Clinical.LabService(_store, _forms);
+        _billing = new Clinic.Client.Core.Clinical.BillingService(_db, _store, device.DeviceCode ?? "D00");
+        _messaging = new Clinic.Client.Core.Clinical.MessagingService(_store);
+        _expenses = new Clinic.Client.Core.Clinical.ExpenseService(_store);
+        _feedback = new Clinic.Client.Core.Clinical.FeedbackService(_store, _forms);
+        _inventory = new Clinic.Client.Core.Clinical.InventoryService(_store);
+        _reports = new Clinic.Client.Core.Clinical.ReportService(_store, _forms);
 
         // FR-SYN-03: a SignalR nudge from the server triggers a pull within seconds.
-        _nudges = new SyncNudgeClient(new Uri(settings.ServerUrl + "/"), () => api.GetAccessTokenAsync(CancellationToken.None), () => RequestSync());
+        // With certificate pins, the hub uses only transports that go through the pinned handler (WebSockets do not).
+        var pinned = settings.CertificatePins.Count > 0;
+        _nudges = new SyncNudgeClient(new Uri(settings.ServerUrl + "/"), () => api.GetAccessTokenAsync(CancellationToken.None), () => RequestSync(),
+            () => SecureHttp.CreateHandler(settings),
+            pinned ? Microsoft.AspNetCore.Http.Connections.HttpTransportType.ServerSentEvents | Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling : null);
         _ = _nudges.TryStartAsync();
 
         _engine.StateChanged += OnStateChanged;

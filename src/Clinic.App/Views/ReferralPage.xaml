@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.ReferralPage"
+             x:DataType="vm:ReferralViewModel"
+             Title="Referral">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="10" MaximumWidthRequest="800">
+            <Label Text="{Binding PatientName}" Style="{StaticResource PageTitle}" FontSize="20" />
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+            <!-- New referral (FR-REF-01…03) -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding IsNew}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Kind" Style="{StaticResource FieldLabel}" />
+                    <Picker ItemsSource="{Binding Directions}" SelectedIndex="{Binding DirectionIndex}" SemanticProperties.Description="Kind of referral" />
+
+                    <VerticalStackLayout IsVisible="{Binding IsInternal}" Spacing="4">
+                        <Label Text="Refer to" Style="{StaticResource FieldLabel}" />
+                        <Picker ItemsSource="{Binding Targets}" SelectedIndex="{Binding TargetIndex}" Title="Doctor or specialty" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding IsExternal}" Spacing="4">
+                        <Label Text="Hospital / specialist / centre *" Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding Facility}" Placeholder="e.g. City Hospital, Radiology" />
+                        <Label Text="Doctor (optional)" Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding ExternalDoctor}" />
+                        <Label Text="Clinical summary (printed with the letter)" Style="{StaticResource FieldLabel}" />
+                        <Editor Text="{Binding Summary}" AutoSize="TextChanges" MinimumHeightRequest="100" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding IsIncoming}" Spacing="4">
+                        <Label Text="Referred by (doctor / clinic) *" Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding SourceName}" Placeholder="e.g. Dr Saleem, Gulberg Clinic" />
+                    </VerticalStackLayout>
+
+                    <Label Text="Reason *" Style="{StaticResource FieldLabel}" />
+                    <Editor Text="{Binding Reason}" AutoSize="TextChanges" MinimumHeightRequest="60" />
+                    <Label Text="Priority" Style="{StaticResource FieldLabel}" />
+                    <Picker ItemsSource="{Binding Priorities}" SelectedIndex="{Binding PriorityIndex}" />
+                    <Button Text="Save referral" Command="{Binding SaveCommand}" HorizontalOptions="Start" Margin="0,6,0,0" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Existing referral -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding IsNew, Converter={StaticResource InvertedBoolConverter}}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="{Binding Heading}" FontFamily="OpenSansSemibold" FontSize="16" />
+                    <Label Text="{Binding Details}" />
+                    <FlexLayout Wrap="Wrap" Margin="0,8,0,0">
+                        <Button Text="Accept" Command="{Binding AcceptCommand}" IsVisible="{Binding CanRespond}" Margin="0,0,8,8" />
+                        <Button Text="Complete" Command="{Binding CompleteCommand}" IsVisible="{Binding CanRespond}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Decline" Command="{Binding DeclineCommand}" IsVisible="{Binding CanRespond}" Style="{StaticResource DangerButton}" Margin="0,0,8,8" />
+                        <Button Text="Print letter" Command="{Binding PrintCommand}" IsVisible="{Binding CanPrint}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

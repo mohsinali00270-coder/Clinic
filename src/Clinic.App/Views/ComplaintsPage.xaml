@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.ComplaintsPage"
+             x:DataType="vm:ComplaintsViewModel"
+             Title="Feedback &amp; complaints">
+    <RefreshView Command="{Binding LoadCommand}" IsRefreshing="{Binding IsBusy}">
+        <ScrollView>
+            <VerticalStackLayout Padding="20,12" Spacing="10" MaximumWidthRequest="900">
+                <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+                <Label Text="Doctor ratings" Style="{StaticResource FieldLabel}" FontSize="15" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Ratings}">
+                    <BindableLayout.EmptyView><Label Text="No feedback yet." Style="{StaticResource Muted}" /></BindableLayout.EmptyView>
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="x:String"><Label Text="{Binding .}" FontSize="13" /></DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8" Margin="0,8,0,0">
+                    <Label Text="Complaints" Style="{StaticResource FieldLabel}" FontSize="15" VerticalOptions="Center" />
+                    <Label Grid.Column="1" Text="Show closed" VerticalOptions="Center" />
+                    <Switch Grid.Column="2" IsToggled="{Binding ShowClosed}" />
+                    <Button Grid.Column="3" Text="New" Command="{Binding RaiseCommand}" Style="{StaticResource SecondaryButton}" />
+                </Grid>
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Complaints}" Spacing="4">
+                    <BindableLayout.EmptyView><Label Text="Nothing here." Style="{StaticResource Muted}" /></BindableLayout.EmptyView>
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CareRow">
+                            <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:ComplaintsViewModel}}, Path=WorkCommand}" CommandParameter="{Binding .}" />
+                                </VerticalStackLayout.GestureRecognizers>
+                                <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding Detail}" TextColor="{Binding TitleColor}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

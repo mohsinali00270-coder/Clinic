@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:controls="clr-namespace:Clinic.App.Controls"
+             x:Class="Clinic.App.Views.CasePage"
+             x:DataType="vm:CaseViewModel"
+             Title="Case">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="12" MaximumWidthRequest="1000">
+            <!-- Header and progress (FR-CASE-04) -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="{Binding Title}" Style="{StaticResource PageTitle}" FontSize="20" />
+                        <Border Grid.Column="1" Style="{StaticResource Badge}" VerticalOptions="Start">
+                            <Label Text="{Binding StatusText}" FontSize="12" />
+                        </Border>
+                    </Grid>
+                    <Label Text="{Binding Subtitle}" Style="{StaticResource Muted}" />
+                    <ProgressBar Progress="{Binding ProgressValue}" Margin="0,6,0,0" ProgressColor="{StaticResource Primary}" />
+                    <Label Text="{Binding ProgressText}" FontSize="13" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Trends}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String"><Label Text="{Binding .}" Style="{StaticResource Muted}" FontSize="12" /></DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                    <FlexLayout Wrap="Wrap" Margin="0,8,0,0" IsVisible="{Binding CanManage}">
+                        <Button Text="Add procedure" Command="{Binding NewProcedureCommand}" IsVisible="{Binding CanEdit}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Refer" Command="{Binding ReferCommand}" IsVisible="{Binding CanEdit}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Hold / resume" Command="{Binding HoldCommand}" IsVisible="{Binding CanEdit}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Close case" Command="{Binding CloseCommand}" IsVisible="{Binding CanEdit}" Margin="0,0,8,8" />
+                        <Button Text="Reopen" Command="{Binding ReopenCommand}" IsVisible="{Binding IsFinished}" Margin="0,0,8,8" />
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </Border>
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+            <!-- Care plan (FR-CASE-05) -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Care plan" FontFamily="OpenSansSemibold" FontSize="16" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="Add step" Command="{Binding AddStepCommand}" IsVisible="{Binding CanEdit}" Style="{StaticResource SecondaryButton}" />
+                    </Grid>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Steps}" Spacing="2">
+                        <BindableLayout.EmptyView><Label Text="No planned steps." Style="{StaticResource Muted}" /></BindableLayout.EmptyView>
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CareRow">
+                                <VerticalStackLayout Padding="6,4">
+                                    <VerticalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CaseViewModel}}, Path=StepActionCommand}" CommandParameter="{Binding .}" />
+                                    </VerticalStackLayout.GestureRecognizers>
+                                    <Label Text="{Binding Title}" TextColor="{Binding TitleColor}" />
+                                    <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Details form (FR-CASE-01: dynamic form per case type) -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding DetailsModel, Converter={StaticResource IsNotNullConverter}}">
+                <VerticalStackLayout Spacing="6">
+                    <controls:DynamicFormView Model="{Binding DetailsModel}" />
+                    <Button Text="Save details" Command="{Binding SaveDetailsCommand}" IsVisible="{Binding CanEdit}" HorizontalOptions="Start" Style="{StaticResource SecondaryButton}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Team (FR-CASE-06) -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Team" FontFamily="OpenSansSemibold" FontSize="16" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="Add" Command="{Binding AddMemberCommand}" IsVisible="{Binding CanEdit}" Style="{StaticResource SecondaryButton}" />
+                    </Grid>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Team}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CareRow">
+                                <Grid ColumnDefinitions="*,Auto" Padding="6,2">
+                                    <Label Text="{Binding Title}" VerticalOptions="Center" />
+                                    <Label Grid.Column="1" Text="{Binding Detail}" Style="{StaticResource Muted}" VerticalOptions="Center" />
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CaseViewModel}}, Path=RemoveMemberCommand}" CommandParameter="{Binding .}" />
+                                    </Grid.GestureRecognizers>
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Notes -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Case notes" FontFamily="OpenSansSemibold" FontSize="16" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding CanEdit}">
+                        <Editor Text="{Binding NewNote}" Placeholder="Progress, team messages…" AutoSize="TextChanges" MinimumHeightRequest="60" />
+                        <Button Grid.Column="1" Text="Add" Command="{Binding AddNoteCommand}" VerticalOptions="Start" />
+                    </Grid>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Notes}" Spacing="4">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CareRow">
+                                <VerticalStackLayout Padding="8,4" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                    <Label Text="{Binding Title}" />
+                                    <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Timeline (FR-CASE-03/04) -->
+            <Label Text="Timeline" Style="{StaticResource FieldLabel}" FontSize="15" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Timeline}" Spacing="2">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CareRow">
+                        <VerticalStackLayout Padding="0,4">
+                            <VerticalStackLayout.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CaseViewModel}}, Path=OpenTimelineCommand}" CommandParameter="{Binding .}" />
+                            </VerticalStackLayout.GestureRecognizers>
+                            <Label Text="{Binding Title}" />
+                            <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

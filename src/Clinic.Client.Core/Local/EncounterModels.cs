@@ -13,6 +13,8 @@ public sealed class LocalEncounter : LocalEntity, ILocalDynamic
     public Guid BranchId { get; set; }
     [Indexed]
     public Guid? AppointmentId { get; set; }
+    [Indexed]
+    public Guid? CaseId { get; set; }
     public string Specialty { get; set; } = "";
     public DateTime StartedAt { get; set; }
     public string Status { get; set; } = "draft";

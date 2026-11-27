@@ -68,8 +68,11 @@ public sealed partial class HomeViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private async Task AppearingAsync()
     {
+        Refresh();
+        await SafeLoadAsync();
         await _auth.RefreshProfileAsync();
         Refresh();
+        await SafeLoadAsync();
     }
 
     [RelayCommand] private Task OpenBranchesAsync() => Ui.GoToAsync($"//{Routes.Branches}");

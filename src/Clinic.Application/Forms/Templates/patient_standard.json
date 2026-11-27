@@ -5,7 +5,7 @@
     { "key": "identity", "title": { "en": "Identity", "ur": "شناخت" }, "fields": [
       { "key": "cnic", "type": "idNumber", "label": { "en": "CNIC", "ur": "شناختی کارڈ نمبر" }, "mask": "#####-#######-#", "unique": true, "searchable": true, "sensitive": true, "columns": 2,
         "placeholder": { "en": "42101-1234567-1" } },
-      { "key": "blood_group", "type": "lookup", "lookupList": "blood_group", "label": { "en": "Blood group", "ur": "بلڈ گروپ" }, "columns": 1 },
+      { "key": "blood_group", "reportable": true, "type": "lookup", "lookupList": "blood_group", "label": { "en": "Blood group", "ur": "بلڈ گروپ" }, "columns": 1 },
       { "key": "marital_status", "type": "lookup", "lookupList": "marital_status", "label": { "en": "Marital status", "ur": "ازدواجی حیثیت" }, "columns": 1,
         "visibleWhen": "ageYears >= 16" } ] },
     { "key": "address", "title": { "en": "Address", "ur": "پتہ" }, "collapsible": true, "fields": [

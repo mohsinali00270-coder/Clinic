@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.InvoicePage"
+             x:DataType="vm:InvoiceViewModel"
+             Title="Invoice">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Print" Command="{Binding ReceiptCommand}" />
+    </ContentPage.ToolbarItems>
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="10" MaximumWidthRequest="900">
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="{Binding Title}" Style="{StaticResource PageTitle}" FontSize="20" />
+                    <Label Text="{Binding Subtitle}" Style="{StaticResource Muted}" />
+                    <Label Text="{Binding TotalsText}" FontFamily="OpenSansSemibold" Margin="0,6,0,0" />
+                    <Label Text="{Binding PanelText}" IsVisible="{Binding PanelText, Converter={StaticResource IsNotNullConverter}}" FontSize="13" />
+                </VerticalStackLayout>
+            </Border>
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+            <Label Text="Charges" Style="{StaticResource FieldLabel}" FontSize="15" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Lines}" Spacing="4">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CareRow">
+                        <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                            <VerticalStackLayout.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:InvoiceViewModel}}, Path=LineActionCommand}" CommandParameter="{Binding .}" />
+                            </VerticalStackLayout.GestureRecognizers>
+                            <Label Text="{Binding Title}" />
+                            <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+            <FlexLayout Wrap="Wrap" IsVisible="{Binding IsDraft}">
+                <Button Text="Add done item" Command="{Binding AddUnbilledCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                <Button Text="Add service" Command="{Binding AddServiceCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                <Button Text="Manual charge" Command="{Binding AddManualCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                <Button Text="Discount" Command="{Binding DiscountCommand}" IsVisible="{Binding CanDiscount}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                <Button Text="Bill to panel…" Command="{Binding PanelCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                <Button Text="Finalise" Command="{Binding FinaliseCommand}" Margin="0,0,8,8" />
+            </FlexLayout>
+
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Credits}" Spacing="2">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CareRow">
+                        <VerticalStackLayout Padding="10,4">
+                            <Label Text="{Binding Title}" TextColor="{Binding TitleColor}" />
+                            <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+            <Label Text="Payments" Style="{StaticResource FieldLabel}" FontSize="15" Margin="0,8,0,0" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Payments}" Spacing="4">
+                <BindableLayout.EmptyView><Label Text="No payments yet." Style="{StaticResource Muted}" /></BindableLayout.EmptyView>
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CareRow">
+                        <VerticalStackLayout Padding="10,4">
+                            <Label Text="{Binding Title}" TextColor="{Binding TitleColor}" />
+                            <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+            <FlexLayout Wrap="Wrap">
+                <Button Text="Take payment" Command="{Binding PayCommand}" IsVisible="{Binding HasDue}" Margin="0,0,8,8" />
+                <Button Text="Use advance credit" Command="{Binding ApplyCreditCommand}" IsVisible="{Binding HasCredit}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                <Button Text="Credit note / write-off" Command="{Binding RequestCreditCommand}" IsVisible="{Binding IsFinal}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                <Button Text="Refund" Command="{Binding RefundCommand}" IsVisible="{Binding CanRefund}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                <Button Text="Void" Command="{Binding VoidCommand}" IsVisible="{Binding IsFinal}" Style="{StaticResource DangerButton}" Margin="0,0,8,8" />
+            </FlexLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

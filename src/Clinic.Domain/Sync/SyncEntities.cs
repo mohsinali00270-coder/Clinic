@@ -84,3 +84,33 @@ public class NumberRange : TenantEntity
     public long EndValue { get; set; }
     public DateTime LeasedAt { get; set; }
 }
+
+/// <summary>
+/// FR-SYN-30: a change that collided with someone else's edit of the same fields (Manual policy). Kept until a person
+/// resolves it on the device; the resolution is audited with both values (FR-SYN-31).
+/// </summary>
+public class SyncConflict : ITenantEntity
+{
+    public Guid Id { get; set; }
+    public Guid TenantId { get; set; }
+    public Guid ChangeId { get; set; }
+    public string EntityType { get; set; } = "";
+    public Guid RecordId { get; set; }
+
+    /// <summary>Comma-separated camelCase fields both sides changed.</summary>
+    public string Fields { get; set; } = "";
+    public string? MineJson { get; set; }
+    public string? TheirsJson { get; set; }
+    public long? BaseRowVersion { get; set; }
+    public long ServerRowVersion { get; set; }
+    public Guid? DeviceId { get; set; }
+    public Guid? UserId { get; set; }
+    public DateTime CreatedAt { get; set; }
+
+    /// <summary>open / resolved.</summary>
+    public string Status { get; set; } = "open";
+    public string? Resolution { get; set; }
+    public string? ResolvedJson { get; set; }
+    public DateTime? ResolvedAt { get; set; }
+    public Guid? ResolvedBy { get; set; }
+}

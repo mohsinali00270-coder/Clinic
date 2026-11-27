@@ -6,6 +6,9 @@ namespace Clinic.Client.Core.Local;
 [Table("Patients")]
 public sealed class LocalPatient : LocalEntity, ILocalDynamic
 {
+    /// <summary>FR-SYN-32: set when this record was merged into another patient (it then arrives as a tombstone).</summary>
+    public Guid? MergedIntoId { get; set; }
+
     [Indexed]
     public string Mrn { get; set; } = "";
     public string FullName { get; set; } = "";

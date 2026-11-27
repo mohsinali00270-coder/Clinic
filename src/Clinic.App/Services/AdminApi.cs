@@ -68,4 +68,15 @@ public sealed class AdminApi(ApiClient api)
 
     public Task<ImportLookupItemsResult> ImportLookupItemsAsync(Guid listId, string csv) =>
         api.PostAsync<ImportLookupItemsResult>($"{FormRoutes.Lookups}/{listId}/import", new ImportLookupItemsRequest(csv));
+
+    // Phase 8: duplicate merge and audit (online admin screens)
+    public Task<List<DuplicatePairDto>> GetDuplicatesAsync() => api.GetAsync<List<DuplicatePairDto>>(HardeningRoutes.Duplicates);
+    public Task<MergeResultDto> MergePatientsAsync(MergePatientsRequest r) => api.PostAsync<MergeResultDto>(HardeningRoutes.Merge, r);
+
+    public Task<PagedResult<AuditEntryDto>> GetAuditAsync(string? entityType, string? entityId, string? action, DateTime from, DateTime to, int page)
+    {
+        static string E(string? v) => Uri.EscapeDataString(v?.Trim() ?? "");
+        return api.GetAsync<PagedResult<AuditEntryDto>>(
+            $"{HardeningRoutes.Audit}?entityType={E(entityType)}&entityId={E(entityId)}&action={E(action)}&from={from:O}&to={to:O}&page={page}&pageSize=50");
+    }
 }

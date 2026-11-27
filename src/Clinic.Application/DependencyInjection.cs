@@ -27,6 +27,14 @@ public static class DependencyInjection
         services.AddScoped<Clinical.SchedulingSetupService>();
         services.AddScoped<Clinical.FileService>();
         services.AddScoped<Clinical.ClinicalMasterService>();
+        services.AddScoped<Clinical.CareSetupService>();
+        services.AddScoped<Clinical.LabBillingService>();
+        services.AddScoped<Clinical.AccountsService>();
+        services.AddScoped<Clinical.MessageDispatcher>();
+        services.AddScoped<Clinical.InventoryReportService>();
+        services.AddScoped<Sync.ChangeLogRetention>();
+        services.AddScoped<Clinical.PatientMergeService>();
+        services.AddScoped<Clinical.AuditService>();
         return services;
     }
 }

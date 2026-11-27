@@ -1,0 +1,19 @@
+{ "key": "case_standard", "name": "Patient case (standard)", "entityType": "Case",
+  "description": "Presenting problem, goals and risk for any episode of care. Publish one per case type (context = case type code) to specialise.",
+  "definition": { "entityType": "Case", "name": { "en": "Case details", "ur": "کیس کی تفصیل" },
+  "sections": [ { "key": "problem", "title": { "en": "Problem", "ur": "مسئلہ" }, "fields": [
+    { "key": "presenting_problem", "type": "multilineText", "label": { "en": "Presenting problem", "ur": "بنیادی مسئلہ" }, "required": true, "columns": 4 },
+    { "key": "goals", "type": "multilineText", "label": { "en": "Goals of care", "ur": "علاج کے مقاصد" }, "columns": 4 },
+    { "key": "risk", "type": "singleSelect", "display": "radio", "label": { "en": "Risk", "ur": "خطرہ" }, "columns": 2,
+      "options": [ { "code": "low", "label": { "en": "Low", "ur": "کم" } }, { "code": "moderate", "label": { "en": "Moderate", "ur": "درمیانہ" } },
+                   { "code": "high", "label": { "en": "High", "ur": "زیادہ" } } ],
+      "abnormal": [ { "when": "value == 'high'", "severity": "warning", "message": { "en": "High-risk case" } } ] }
+  ] },
+  { "key": "pregnancy", "title": { "en": "Pregnancy", "ur": "حمل" }, "visibleWhen": "caseType == 'pregnancy'", "fields": [
+    { "key": "lmp", "type": "date", "label": { "en": "Last menstrual period (LMP)" }, "notInFuture": true, "requiredWhen": "caseType == 'pregnancy'", "columns": 2 },
+    { "key": "edd", "type": "calculated", "label": { "en": "Expected delivery (EDD)" }, "formula": "lmp + 280", "columns": 2, "visibleWhen": "!isEmpty(lmp)" },
+    { "key": "gravida", "type": "integer", "label": { "en": "Gravida" }, "min": 1, "max": 20, "columns": 1 },
+    { "key": "para", "type": "integer", "label": { "en": "Para" }, "min": 0, "max": 20, "columns": 1 },
+    { "key": "previous_cs", "type": "integer", "label": { "en": "Previous C-sections" }, "min": 0, "max": 10, "columns": 2,
+      "abnormal": [ { "when": "value >= 2", "severity": "warning", "message": { "en": "Two or more previous C-sections" } } ] }
+  ] } ] } }

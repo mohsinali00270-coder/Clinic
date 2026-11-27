@@ -126,8 +126,23 @@ public sealed class OutboxEntry
     /// <summary>Server's copy of the record, sent back with a conflict or rejection.</summary>
     public string? ServerData { get; set; }
 
+    /// <summary>FR-SYN-30: the server's conflict record, closed when this conflict is resolved.</summary>
+    public Guid? ConflictId { get; set; }
+
     /// <summary>Short human description for the Sync Center, e.g. "Note: Fridge broken".</summary>
     public string? Summary { get; set; }
+}
+
+/// <summary>A conflict resolved on the device, reported to the server on the next sync (after the resolving change).</summary>
+[Table("ConflictResolutions")]
+public sealed class PendingConflictResolution
+{
+    [PrimaryKey, AutoIncrement]
+    public long Seq { get; set; }
+    public Guid ConflictId { get; set; }
+    public string Resolution { get; set; } = "";
+    public string? ValuesJson { get; set; }
+    public DateTime ResolvedAt { get; set; }
 }
 
 [Table("SyncCheckpoints")]

@@ -1,0 +1,45 @@
+# Clinic API + SQL Server for a single-site or staging install.
+#   cp .env.example .env   (set the passwords and signing key)
+#   docker compose up -d --build
+# Put a TLS-terminating reverse proxy (or a cloud load balancer) in front of port 8080: devices only talk HTTPS (FR-SEC-01).
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SQL_SA_PASSWORD:?set SQL_SA_PASSWORD in .env}
+      MSSQL_PID: Express
+    volumes:
+      - sql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: src/Clinic.Api/Dockerfile
+    depends_on:
+      sql:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Clinic: "Server=sql;Database=ClinicDb;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=True"
+      Database__Provider: SqlServer
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?set JWT_SIGNING_KEY in .env (at least 32 characters)}
+      Seed__Enabled: ${SEED_ENABLED:-false}
+      Seed__SuperAdminPassword: ${SUPERADMIN_PASSWORD:-}
+      Sync__ChangeLogRetentionDays: ${CHANGELOG_RETENTION_DAYS:-90}
+      OpenTelemetry__OtlpEndpoint: ${OTLP_ENDPOINT:-}
+    volumes:
+      - files:/data/files
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  sql-data:
+  files:

@@ -50,7 +50,7 @@ public sealed class ApiClient(AppSettings settings, SessionStore session, Device
             {
                 _http?.Dispose();
                 _httpBase = settings.ServerUrl;
-                _http = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All })
+                _http = new HttpClient(SecureHttp.CreateHandler(settings))
                 {
                     BaseAddress = new Uri(_httpBase + "/"),
                     Timeout = TimeSpan.FromSeconds(30),

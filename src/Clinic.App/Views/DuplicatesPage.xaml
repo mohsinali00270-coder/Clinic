@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.DuplicatesPage"
+             x:DataType="vm:DuplicatesViewModel"
+             Title="Duplicate patients">
+    <Grid RowDefinitions="Auto,Auto,*" Padding="20,12" RowSpacing="10" MaximumWidthRequest="860">
+        <Label Text="Patients that look like the same person (same phone, similar name, compatible date of birth). Choose the record to keep: the visits, bills and files of the other record move to it."
+               Style="{StaticResource Muted}" />
+        <Label Grid.Row="1" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+        <RefreshView Grid.Row="2" Command="{Binding LoadCommand}" IsRefreshing="{Binding IsBusy}">
+            <CollectionView ItemsSource="{Binding Pairs}" SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <Label Text="No likely duplicates." Style="{StaticResource Muted}" HorizontalOptions="Center" Margin="0,40" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:DuplicateRow">
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="{Binding Reasons}" FontSize="12" Style="{StaticResource Muted}" />
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                    <Label Text="{Binding A}" />
+                                    <Button Grid.Column="1" Text="Keep this" Style="{StaticResource SecondaryButton}" VerticalOptions="Center"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DuplicatesViewModel}}, Path=KeepFirstCommand}"
+                                            CommandParameter="{Binding .}" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                    <Label Text="{Binding B}" />
+                                    <Button Grid.Column="1" Text="Keep this" Style="{StaticResource SecondaryButton}" VerticalOptions="Center"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DuplicatesViewModel}}, Path=KeepSecondCommand}"
+                                            CommandParameter="{Binding .}" />
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

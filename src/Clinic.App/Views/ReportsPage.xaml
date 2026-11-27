@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.ReportsPage"
+             x:DataType="vm:ReportsViewModel"
+             Title="Dashboard &amp; reports">
+    <RefreshView Command="{Binding LoadCommand}" IsRefreshing="{Binding IsBusy}">
+        <ScrollView>
+            <VerticalStackLayout Padding="20,12" Spacing="10" MaximumWidthRequest="900">
+                <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                    <Picker ItemsSource="{Binding Periods}" SelectedIndex="{Binding PeriodIndex}" SemanticProperties.Description="Period" />
+                    <Button Grid.Column="1" Text="Excel" Command="{Binding ExcelCommand}" Style="{StaticResource SecondaryButton}" />
+                    <Button Grid.Column="2" Text="PDF" Command="{Binding PdfCommand}" Style="{StaticResource SecondaryButton}" />
+                </Grid>
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout>
+                        <Label Text="{Binding Headline}" FontFamily="OpenSansSemibold" FontSize="16" />
+                        <Label Text="{Binding AsOf}" Style="{StaticResource Muted}" FontSize="12" />
+                    </VerticalStackLayout>
+                </Border>
+                <Label Text="Visits by doctor" Style="{StaticResource FieldLabel}" FontSize="15" Margin="0,6,0,0" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Doctors}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="x:String"><Label Text="{Binding .}" FontSize="13" /></DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Label Text="Top diagnoses" Style="{StaticResource FieldLabel}" FontSize="15" Margin="0,6,0,0" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Diagnoses}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="x:String"><Label Text="{Binding .}" FontSize="13" /></DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Label Text="Revenue by method" Style="{StaticResource FieldLabel}" FontSize="15" Margin="0,6,0,0" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Revenue}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="x:String"><Label Text="{Binding .}" FontSize="13" /></DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Label Text="Pending payments" Style="{StaticResource FieldLabel}" FontSize="15" Margin="0,6,0,0" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Pending}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="x:String"><Label Text="{Binding .}" FontSize="13" /></DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Label Text="Stock alerts" Style="{StaticResource FieldLabel}" FontSize="15" Margin="0,6,0,0" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Stock}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="x:String"><Label Text="{Binding .}" FontSize="13" /></DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Label Text="Group patients by (reportable fields)" Style="{StaticResource FieldLabel}" FontSize="15" Margin="0,6,0,0" />
+                <Picker ItemsSource="{Binding GroupBy}" SelectedIndex="{Binding GroupByIndex}" Title="Choose a field" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Breakdown}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="x:String"><Label Text="{Binding .}" FontSize="13" /></DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

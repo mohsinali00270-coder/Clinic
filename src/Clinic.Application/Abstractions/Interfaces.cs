@@ -48,6 +48,7 @@ public interface IAppDbContext
     DbSet<Device> Devices { get; }
     DbSet<AuditLog> AuditLogs { get; }
     DbSet<ChangeLog> ChangeLogs { get; }
+    DbSet<SyncConflict> SyncConflicts { get; }
     DbSet<SyncCounter> SyncCounters { get; }
     DbSet<SyncLog> SyncLogs { get; }
     DbSet<NumberRange> NumberRanges { get; }
@@ -75,6 +76,50 @@ public interface IAppDbContext
     DbSet<Domain.Clinical.Prescription> Prescriptions { get; }
     DbSet<Domain.Clinical.PrescriptionItem> PrescriptionItems { get; }
     DbSet<Domain.Clinical.PrescriptionTemplate> PrescriptionTemplates { get; }
+    DbSet<Domain.Clinical.CaseType> CaseTypes { get; }
+    DbSet<Domain.Clinical.PatientCase> Cases { get; }
+    DbSet<Domain.Clinical.CarePlanStep> CarePlanSteps { get; }
+    DbSet<Domain.Clinical.CaseMember> CaseMembers { get; }
+    DbSet<Domain.Clinical.CaseNote> CaseNotes { get; }
+    DbSet<Domain.Clinical.Referral> Referrals { get; }
+    DbSet<Domain.Clinical.ProcedureType> ProcedureTypes { get; }
+    DbSet<Domain.Clinical.ProcedureRecord> Procedures { get; }
+    DbSet<Domain.Clinical.Bed> Beds { get; }
+    DbSet<Domain.Clinical.Admission> Admissions { get; }
+    DbSet<Domain.Clinical.BedTransfer> BedTransfers { get; }
+    DbSet<Domain.Clinical.NursingNote> NursingNotes { get; }
+    DbSet<Domain.Clinical.MedicationOrder> MedicationOrders { get; }
+    DbSet<Domain.Clinical.MedicationDose> MedicationDoses { get; }
+    DbSet<Domain.Clinical.LabTest> LabTests { get; }
+    DbSet<Domain.Clinical.LabOrder> LabOrders { get; }
+    DbSet<Domain.Clinical.LabResult> LabResults { get; }
+    DbSet<Domain.Clinical.ServiceItem> ServiceItems { get; }
+    DbSet<Domain.Clinical.Invoice> Invoices { get; }
+    DbSet<Domain.Clinical.InvoiceLine> InvoiceLines { get; }
+    DbSet<Domain.Clinical.Payment> Payments { get; }
+    DbSet<Domain.Clinical.CashClosing> CashClosings { get; }
+    DbSet<Domain.Clinical.PackagePlan> PackagePlans { get; }
+    DbSet<Domain.Clinical.PatientPackage> PatientPackages { get; }
+    DbSet<Domain.Clinical.PackageUsage> PackageUsages { get; }
+    DbSet<Domain.Clinical.Payer> Payers { get; }
+    DbSet<Domain.Clinical.PatientPanel> PatientPanels { get; }
+    DbSet<Domain.Clinical.PayerSettlement> PayerSettlements { get; }
+    DbSet<Domain.Clinical.CreditNote> CreditNotes { get; }
+    DbSet<Domain.Clinical.Expense> Expenses { get; }
+    DbSet<Domain.Clinical.DoctorShareRule> DoctorShareRules { get; }
+    DbSet<Domain.Clinical.DoctorPayout> DoctorPayouts { get; }
+    DbSet<Domain.Clinical.MessageTemplate> MessageTemplates { get; }
+    DbSet<Domain.Clinical.ContactPreference> ContactPreferences { get; }
+    DbSet<Domain.Clinical.OutboundMessage> OutboundMessages { get; }
+    DbSet<Domain.Clinical.Feedback> Feedback { get; }
+    DbSet<Domain.Clinical.Complaint> Complaints { get; }
+    DbSet<Domain.Clinical.InventoryItem> InventoryItems { get; }
+    DbSet<Domain.Clinical.StockBatch> StockBatches { get; }
+    DbSet<Domain.Clinical.StockMovement> StockMovements { get; }
+    DbSet<Domain.Clinical.Dispensation> Dispensations { get; }
+    DbSet<Domain.Clinical.PatientMerge> PatientMerges { get; }
+    DbSet<Domain.Clinical.AccessEvent> AccessEvents { get; }
+    DbSet<Domain.Clinical.ClientError> ClientErrors { get; }
 
     DbSet<TEntity> Set<TEntity>() where TEntity : class;
     EntityEntry Entry(object entity);

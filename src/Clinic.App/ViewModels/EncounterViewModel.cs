@@ -33,7 +33,8 @@ public sealed record DiagnosisRow(LocalDiagnosis Diagnosis)
 /// §4.3/4.4: the consultation screen — vitals, the specialty form, diagnoses, prescription, sign, amend and print.
 /// Everything works offline; printing renders the PDF on the device.
 /// </summary>
-public sealed partial class EncounterViewModel(SyncCoordinator sync, SessionStore session) : ViewModelBase, IQueryAttributable
+public sealed partial class EncounterViewModel(SyncCoordinator sync, SessionStore session, ReadAloudService voice, DocumentScanner scanner)
+    : ViewModelBase, IQueryAttributable
 {
     private Guid _encounterId;
     private LocalEncounter? _encounter;
@@ -61,6 +62,29 @@ public sealed partial class EncounterViewModel(SyncCoordinator sync, SessionStor
     [ObservableProperty] public partial DateTime? FollowUp { get; set; }
     [ObservableProperty] public partial bool HasWarnings { get; set; }
     [ObservableProperty] public partial bool HasAmendments { get; set; }
+    [ObservableProperty] public partial string CaseText { get; set; } = "Not part of a case";
+
+    /// <summary>Procedures done in this visit (§4.12).</summary>
+    public ObservableCollection<CareRow> Procedures { get; } = [];
+    public bool CanUseCases => session.Has(Permissions.Cases.Manage);
+    public bool CanRefer => session.Has(Permissions.Referrals.Manage);
+    public bool CanDoProcedures => session.Has(Permissions.Procedures.Perform);
+    public bool CanScan => scanner.IsSupported;
+    public bool CanOrderLabs => session.Has(Permissions.Labs.Order);
+
+    /// <summary>Tests ordered in this visit with their status (§4.5).</summary>
+    public ObservableCollection<CareRow> LabTests { get; } = [];
+
+    [RelayCommand]
+    private async Task OrderTestsAsync()
+    {
+        if (_encounter is not { } e) return;
+        await RunAsync(async () => await LabUi.OrderAsync(sync, session, e.PatientId, e.Id));
+        await RefreshCareAsync();
+    }
+
+    [RelayCommand]
+    private Task LabReportAsync(CareRow row) => RunAsync(() => LabUi.PrintReportAsync(sync, session, row.Id));
 
     public bool CanSign => !IsLocked && session.Has(Permissions.Encounters.Sign);
     public string NotesButtonText => IsLocked ? "Amend notes (needs a reason)" : "Save notes";
@@ -115,6 +139,7 @@ public sealed partial class EncounterViewModel(SyncCoordinator sync, SessionStor
         LatestVitals = await VitalsSummaryAsync(e.PatientId);
 
         await RefreshListsAsync();
+        await RefreshCareAsync();
         _savedFollowUp = FollowUp;
         StartAutosave();
     }
@@ -385,5 +410,94 @@ public sealed partial class EncounterViewModel(SyncCoordinator sync, SessionStor
             await File.WriteAllBytesAsync(path, PrescriptionPdf.Render(document));
             await Share.Default.RequestAsync(new ShareFileRequest("Prescription", new ShareFile(path, "application/pdf")));
         });
+    }
+
+    // ------------------------------------------------------------------ Phase 5b: case, referral, procedures, on-device assist
+
+    private async Task RefreshCareAsync()
+    {
+        if (_encounter is not { } e) return;
+        CaseText = e.CaseId is { } cid && await sync.Cases.GetAsync(cid) is { } c ? $"Case: {c.Title} ({CaseStatus.Display(c.Status)})" : "Not part of a case";
+        LabTests.Clear();
+        foreach (var o in await sync.Labs.ForEncounterAsync(e.Id))
+        {
+            var results = await sync.Labs.ResultsAsync(o.Id);
+            LabTests.Add(new CareRow(o.Id, string.Join(", ", results.Select(r => r.TestName)),
+                string.Join(" · ", results.Select(r => $"{r.TestCode}: {LabStatus.Display(r.Status)}{(r.IsAbnormal ? " ▲" : "")}")), results.Any(r => r.IsAbnormal)));
+        }
+        Procedures.Clear();
+        foreach (var p in await sync.Procedures.ForEncounterAsync(e.Id))
+            Procedures.Add(new CareRow(p.Id, p.Name, ProcedureStatus.Display(p.Status) + (p.ConsentRequired && p.ConsentSignedAt is null ? " · consent needed" : ""),
+                p.ConsentRequired && p.ConsentSignedAt is null));
+    }
+
+    /// <summary>FR-CASE-03: file this visit under one of the patient's open cases (or open a new one).</summary>
+    [RelayCommand]
+    private async Task LinkCaseAsync()
+    {
+        if (_encounter is not { } e) return;
+        var open = await sync.Cases.ForPatientAsync(e.PatientId, openOnly: true);
+        var options = open.Select(c => c.Title).Append("Open a new case…").ToList();
+        if (e.CaseId is not null) options.Add("Remove from case");
+        var pick = await CareUi.PickAsync("Case for this visit", options);
+        if (pick is null) return;
+        if (pick == "Open a new case…") { await Ui.GoToAsync(Routes.Case, new Dictionary<string, object> { ["patientId"] = e.PatientId }); return; }
+        var target = pick == "Remove from case" ? null : open.FirstOrDefault(c => c.Title == pick)?.Id;
+        await RunAsync(async () =>
+        {
+            await sync.Cases.LinkEncounterAsync(e.Id, target);
+            _encounter = await sync.Encounters.GetAsync(e.Id);
+            await RefreshCareAsync();
+        });
+    }
+
+    [RelayCommand]
+    private Task OpenCaseAsync() => _encounter?.CaseId is { } cid
+        ? Ui.GoToAsync(Routes.Case, new Dictionary<string, object> { ["caseId"] = cid })
+        : LinkCaseAsync();
+
+    [RelayCommand]
+    private async Task ReferAsync()
+    {
+        if (_encounter is not { } e) return;
+        await AutosaveAsync();
+        var query = new Dictionary<string, object> { ["patientId"] = e.PatientId, ["encounterId"] = e.Id };
+        if (e.CaseId is { } cid) query["caseId"] = cid;
+        await Ui.GoToAsync(Routes.Referral, query);
+    }
+
+    [RelayCommand]
+    private Task NewProcedureAsync()
+    {
+        if (_encounter is not { } e) return Task.CompletedTask;
+        var query = new Dictionary<string, object> { ["patientId"] = e.PatientId, ["encounterId"] = e.Id };
+        if (e.CaseId is { } cid) query["caseId"] = cid;
+        return Ui.GoToAsync(Routes.Procedure, query);
+    }
+
+    [RelayCommand]
+    private Task OpenProcedureAsync(CareRow row) => Ui.GoToAsync(Routes.Procedure, new Dictionary<string, object> { ["procedureId"] = row.Id });
+
+    /// <summary>FR-AI-22: read the prescription to the patient in English or Urdu (offline platform voices).</summary>
+    [RelayCommand]
+    private async Task ReadAloudAsync(string language)
+    {
+        var lines = (await sync.Prescriptions.ItemsAsync(_encounterId))
+            .Select(i => new PatientInstructions.Line($"{i.DrugName} {i.Strength}".Trim(), i.Dose, i.Frequency, i.DurationDays, i.Instructions));
+        var text = PatientInstructions.Build(lines, language, FollowUp);
+        if (text.Count == 0) { await Ui.AlertAsync("Read aloud", "There is nothing to read yet."); return; }
+        await voice.SpeakAsync(text, language);
+    }
+
+    [RelayCommand]
+    private void StopReading() => voice.Stop();
+
+    /// <summary>FR-AI-21: photograph an outside report and propose its numbers for the vitals form.</summary>
+    [RelayCommand]
+    private async Task ScanVitalsAsync()
+    {
+        if (VitalsModel is not { } m) return;
+        var applied = await OcrReview.ScanIntoAsync(scanner, m);
+        if (applied > 0) await Ui.AlertAsync("Scan", $"{applied} value(s) filled in. Check them, then save the vitals.");
     }
 }

@@ -6,6 +6,9 @@
              x:Class="Clinic.App.Views.PatientEditPage"
              x:DataType="vm:PatientEditViewModel"
              Title="{Binding PageTitle}">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Scan ID card" Command="{Binding ScanIdCommand}" />
+    </ContentPage.ToolbarItems>
     <ScrollView>
         <VerticalStackLayout Padding="20,12" Spacing="10" MaximumWidthRequest="1000">
             <Border Style="{StaticResource Card}">

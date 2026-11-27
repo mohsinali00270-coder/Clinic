@@ -7,42 +7,55 @@
              Shell.NavBarIsVisible="False"
              Shell.FlyoutBehavior="Disabled"
              Title="Sign in">
-    <ScrollView>
-        <Grid Padding="24" RowDefinitions="*,Auto,*">
-            <Border Grid.Row="1" Style="{StaticResource Card}" Padding="28" MaximumWidthRequest="440">
-                <VerticalStackLayout Spacing="6">
-                    <Label Text="Clinic" Style="{StaticResource PageTitle}" FontSize="30" HorizontalOptions="Center" />
-                    <Label Text="Sign in to your clinic" Style="{StaticResource Muted}" HorizontalOptions="Center" Margin="0,0,0,12" />
-
-                    <Label Text="Clinic code" Style="{StaticResource FieldLabel}" />
-                    <Entry Text="{Binding TenantCode}" Placeholder="e.g. demo" Keyboard="Plain"
-                           IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"
-                           SemanticProperties.Description="Clinic code" />
-
-                    <Label Text="User name" Style="{StaticResource FieldLabel}" />
-                    <Entry Text="{Binding UserName}" Placeholder="User name" Keyboard="Plain"
-                           IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"
-                           SemanticProperties.Description="User name" />
-
-                    <Label Text="Password" Style="{StaticResource FieldLabel}" />
-                    <Entry Text="{Binding Password}" IsPassword="True" Placeholder="Password"
-                           ReturnCommand="{Binding LoginCommand}"
-                           SemanticProperties.Description="Password" />
-
-                    <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" Margin="0,8,0,0" />
-
-                    <Button Text="Sign in" Command="{Binding LoginCommand}" IsEnabled="{Binding IsNotBusy}" Margin="0,16,0,0" MinimumHeightRequest="44" />
-                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center" />
-
-                    <Button Text="Server settings" Command="{Binding ToggleServerSettingsCommand}"
-                            Style="{StaticResource SecondaryButton}" BorderWidth="0" FontSize="13" Margin="0,8,0,0" />
-                    <VerticalStackLayout IsVisible="{Binding ShowServerSettings}" Spacing="4">
-                        <Label Text="Server address" Style="{StaticResource FieldLabel}" />
-                        <Entry Text="{Binding ServerUrl}" Keyboard="Url" Placeholder="https://api.yourclinic.com"
-                               SemanticProperties.Description="Server address" />
-                    </VerticalStackLayout>
+    <!-- Brand backdrop: the one full-bleed gradient in the app -->
+    <Grid Background="{AppThemeBinding Light={StaticResource HeroGradient}, Dark={StaticResource HeroGradientDark}}">
+        <ScrollView>
+            <Grid Padding="20,32" RowDefinitions="*,Auto,Auto,*" RowSpacing="18">
+                <VerticalStackLayout Grid.Row="1" Spacing="6" HorizontalOptions="Center">
+                    <Image Source="brand_mark.png" WidthRequest="64" HeightRequest="64" HorizontalOptions="Center"
+                           SemanticProperties.Description="Clinic logo" />
+                    <Label Text="Clinic" Style="{StaticResource OnHero}" FontSize="30" FontFamily="OpenSansSemibold" HorizontalOptions="Center"
+                           CharacterSpacing="-0.4" SemanticProperties.HeadingLevel="Level1" />
+                    <Label Text="Patient care, appointments and billing — online or offline" Style="{StaticResource OnHeroMuted}"
+                           HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                 </VerticalStackLayout>
-            </Border>
-        </Grid>
-    </ScrollView>
+
+                <Border Grid.Row="2" Style="{StaticResource ElevatedCard}" Padding="28,26" MaximumWidthRequest="440"
+                        StrokeShape="RoundRectangle 22" Stroke="Transparent">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Sign in" Style="{StaticResource SectionTitle}" FontSize="20" />
+                        <Label Text="Use the clinic code your administrator gave you." Style="{StaticResource Muted}" Margin="0,0,0,8" />
+
+                        <Label Text="Clinic code" Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding TenantCode}" Placeholder="e.g. demo" Keyboard="Plain"
+                               IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"
+                               SemanticProperties.Description="Clinic code" />
+
+                        <Label Text="User name" Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding UserName}" Placeholder="User name" Keyboard="Plain"
+                               IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"
+                               SemanticProperties.Description="User name" />
+
+                        <Label Text="Password" Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding Password}" IsPassword="True" Placeholder="Password"
+                               ReturnCommand="{Binding LoginCommand}"
+                               SemanticProperties.Description="Password" />
+
+                        <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" Margin="0,8,0,0" />
+
+                        <Button Text="Sign in" Command="{Binding LoginCommand}" IsEnabled="{Binding IsNotBusy}" Margin="0,18,0,0" MinimumHeightRequest="48" />
+                        <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center" Margin="0,6,0,0" />
+
+                        <Button Text="Server settings" Command="{Binding ToggleServerSettingsCommand}"
+                                Style="{StaticResource LinkButton}" FontSize="13" Margin="0,6,0,0" HorizontalOptions="Center" />
+                        <VerticalStackLayout IsVisible="{Binding ShowServerSettings}" Spacing="4">
+                            <Label Text="Server address" Style="{StaticResource FieldLabel}" />
+                            <Entry Text="{Binding ServerUrl}" Keyboard="Url" Placeholder="https://api.yourclinic.com"
+                                   SemanticProperties.Description="Server address" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+        </ScrollView>
+    </Grid>
 </ContentPage>

@@ -1,0 +1,13 @@
+{ "key": "lab_generic", "name": "Lab: single result (generic)", "entityType": "LabResult",
+  "description": "One value with unit and reference range, or a text result, for any test without its own form. Publish without context.",
+  "definition": { "entityType": "LabResult", "name": { "en": "Lab result" },
+  "sections": [ { "key": "result", "title": { "en": "Result" }, "fields": [
+    { "key": "value", "type": "decimal", "label": { "en": "Result value" }, "columns": 1 },
+    { "key": "unit", "type": "text", "label": { "en": "Unit" }, "columns": 1 },
+    { "key": "ref_low", "type": "decimal", "label": { "en": "Reference low" }, "columns": 1 },
+    { "key": "ref_high", "type": "decimal", "label": { "en": "Reference high" }, "columns": 1 },
+    { "key": "flag", "type": "calculated", "label": { "en": "Flag" }, "columns": 1,
+      "formula": "if(isEmpty(value), null, if(!isEmpty(ref_low) && value < ref_low, 'L', if(!isEmpty(ref_high) && value > ref_high, 'H', 'N')))",
+      "abnormal": [ { "when": "value == 'L' || value == 'H'", "severity": "warning", "message": { "en": "Outside reference range" } } ] },
+    { "key": "result_text", "type": "multilineText", "label": { "en": "Result (text)" }, "help": { "en": "For qualitative results, e.g. 'Non-reactive'." }, "columns": 4 }
+  ] } ] } }

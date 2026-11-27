@@ -1,0 +1,17 @@
+{ "key": "procedure_note", "name": "Procedure note (standard)", "entityType": "Procedure",
+  "description": "Indication, anaesthesia, findings, complications and aftercare for any minor procedure. Publish one per procedure code to specialise.",
+  "definition": { "entityType": "Procedure", "name": { "en": "Procedure note", "ur": "طریقۂ علاج کا نوٹ" },
+  "sections": [ { "key": "note", "title": { "en": "Procedure", "ur": "طریقۂ علاج" }, "fields": [
+    { "key": "indication", "type": "text", "label": { "en": "Indication", "ur": "وجہ" }, "required": true, "columns": 4 },
+    { "key": "site", "type": "text", "label": { "en": "Site / tooth / area" }, "columns": 2 },
+    { "key": "anaesthesia", "type": "singleSelect", "label": { "en": "Anaesthesia" }, "columns": 2,
+      "options": [ { "code": "none", "label": { "en": "None" } }, { "code": "local", "label": { "en": "Local" } },
+                   { "code": "topical", "label": { "en": "Topical" } }, { "code": "sedation", "label": { "en": "Sedation" } } ] },
+    { "key": "findings", "type": "multilineText", "label": { "en": "Findings and technique" }, "columns": 4 },
+    { "key": "complications", "type": "yesNo", "label": { "en": "Complications" }, "columns": 1,
+      "abnormal": [ { "when": "value == true", "severity": "warning", "message": { "en": "Complication recorded" } } ] },
+    { "key": "complication_details", "type": "multilineText", "label": { "en": "Complication details" }, "visibleWhen": "complications == true",
+      "requiredWhen": "complications == true", "columns": 3 },
+    { "key": "pain_score", "type": "integer", "label": { "en": "Pain after (0–10)" }, "min": 0, "max": 10, "columns": 1 },
+    { "key": "aftercare", "type": "multilineText", "label": { "en": "Aftercare advice", "ur": "بعد کی ہدایات" }, "columns": 4, "printOnPrescription": true }
+  ] } ] } }

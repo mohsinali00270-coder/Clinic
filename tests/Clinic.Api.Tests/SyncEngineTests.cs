@@ -94,7 +94,7 @@ public sealed class SyncEngineTests(ClinicApiFactory factory) : IClassFixture<Cl
         await writer.Engine.SyncAsync();
 
         await using var reader = await ClientDevice.CreateAsync(await factory.DemoAdminDeviceAsync(),
-            new SyncEngineOptions { PullPageSize = 2, LeaseKinds = [] });
+            new SyncEngineOptions { PullPageSize = 2, LeaseKinds = [], UseSnapshot = false });
         reader.Transport.FailPullCall = 3;
 
         var broken = await reader.Engine.SyncAsync();

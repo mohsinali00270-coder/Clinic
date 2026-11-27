@@ -20,6 +20,16 @@
                         <Button Text="Book appointment" Command="{Binding BookCommand}" IsVisible="{Binding CanBook}" Margin="0,0,8,8" />
                         <Button Text="Walk-in" Command="{Binding WalkInCommand}" IsVisible="{Binding CanBook}" Margin="0,0,8,8" />
                         <Button Text="New consultation" Command="{Binding NewConsultationCommand}" IsVisible="{Binding CanConsult}" Margin="0,0,8,8" />
+                        <Button Text="Open case" Command="{Binding OpenNewCaseCommand}" IsVisible="{Binding CanOpenCase}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Refer" Command="{Binding ReferCommand}" IsVisible="{Binding CanRefer}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Procedure" Command="{Binding NewProcedureCommand}" IsVisible="{Binding CanDoProcedures}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Admit to day care" Command="{Binding AdmitCommand}" IsVisible="{Binding CanAdmit}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Billing" Command="{Binding BillingCommand}" IsVisible="{Binding CanBill}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Order tests" Command="{Binding OrderTestsCommand}" IsVisible="{Binding CanOrderLabs}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Dispense" Command="{Binding DispenseCommand}" IsVisible="{Binding CanDispense}" Margin="0,0,8,8" />
+                        <Button Text="Message" Command="{Binding SendMessageCommand}" IsVisible="{Binding CanMessage}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Preferences" Command="{Binding PreferencesCommand}" IsVisible="{Binding CanMessage}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Feedback" Command="{Binding FeedbackCommand}" IsVisible="{Binding CanFeedback}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
                         <Button Text="Edit" Command="{Binding EditCommand}" IsVisible="{Binding CanEdit}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
                         <Button Text="Add photo" Command="{Binding AddPhotoCommand}" IsVisible="{Binding CanUpload}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
                         <Button Text="Add document" Command="{Binding AddDocumentCommand}" IsVisible="{Binding CanUpload}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
@@ -27,6 +37,26 @@
                 </VerticalStackLayout>
             </Border>
             <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+            <Label Text="Cases" Style="{StaticResource FieldLabel}" FontSize="15" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Cases}" Spacing="4">
+                <BindableLayout.EmptyView>
+                    <Label Text="No cases." Style="{StaticResource Muted}" />
+                </BindableLayout.EmptyView>
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CareRow">
+                        <Grid Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PatientViewModel}}, Path=OpenCaseCommand}" CommandParameter="{Binding .}" />
+                            </Grid.GestureRecognizers>
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding Detail}" TextColor="{Binding TitleColor}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
 
             <Label Text="Files" Style="{StaticResource FieldLabel}" FontSize="15" />
             <VerticalStackLayout BindableLayout.ItemsSource="{Binding Files}" Spacing="4">

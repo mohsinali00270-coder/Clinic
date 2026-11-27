@@ -12,6 +12,12 @@ public partial class HomePage : ContentPage
         BindingContext = _vm = vm;
     }
 
+    protected override void OnSizeAllocated(double width, double height)
+    {
+        base.OnSizeAllocated(width, height);
+        _vm.ApplyWidth(width);
+    }
+
     protected override void OnAppearing()
     {
         base.OnAppearing();

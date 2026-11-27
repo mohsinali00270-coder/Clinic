@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.AuditPage"
+             x:DataType="vm:AuditViewModel"
+             Title="Audit log">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Padding="20,12" RowSpacing="10" MaximumWidthRequest="900">
+        <Border Style="{StaticResource Card}">
+            <FlexLayout Wrap="Wrap" AlignItems="End">
+                <Entry Placeholder="Record type (e.g. Patient)" Text="{Binding EntityType}" WidthRequest="200" Margin="0,0,10,6" />
+                <Entry Placeholder="Record id" Text="{Binding EntityId}" WidthRequest="280" Margin="0,0,10,6" />
+                <Entry Placeholder="Action (Update, Read:open)" Text="{Binding Action}" WidthRequest="200" Margin="0,0,10,6" />
+                <DatePicker Date="{Binding From}" Margin="0,0,10,6" />
+                <DatePicker Date="{Binding To}" Margin="0,0,10,6" />
+                <Button Text="Search" Command="{Binding SearchCommand}" Margin="0,0,10,6" />
+            </FlexLayout>
+        </Border>
+        <Label Grid.Row="1" Text="{Binding Summary}" Style="{StaticResource Muted}" />
+        <Label Grid.Row="2" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+        <CollectionView Grid.Row="3" ItemsSource="{Binding Entries}" SelectionMode="None">
+            <CollectionView.EmptyView>
+                <Label Text="No entries. Adjust the filters and search." Style="{StaticResource Muted}" HorizontalOptions="Center" Margin="0,40" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:AuditRow">
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,8">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                            <Label Text="{Binding Who}" Style="{StaticResource Muted}" />
+                            <Label Text="{Binding Detail}" FontSize="12" Style="{StaticResource Muted}" />
+                            <Label Text="{Binding Changes}" IsVisible="{Binding HasChanges}" FontSize="12" LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <Button Grid.Row="4" Text="Load more" Style="{StaticResource SecondaryButton}" Command="{Binding MoreCommand}" IsVisible="{Binding HasMore}"
+                HorizontalOptions="Center" />
+    </Grid>
+</ContentPage>

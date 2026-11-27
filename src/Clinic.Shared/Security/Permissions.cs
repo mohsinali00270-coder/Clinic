@@ -113,8 +113,68 @@ public static class Permissions
         public const string Dispense = "Prescriptions.Dispense";
     }
 
+    /// <summary>§4.10 patient cases (episodes of care): open, plan, team, notes, close.</summary>
+    public static class Cases
+    {
+        public const string View = "Cases.View";
+        public const string Manage = "Cases.Manage";
+    }
+
+    /// <summary>§4.11 internal, external and incoming referrals.</summary>
+    public static class Referrals
+    {
+        public const string View = "Referrals.View";
+        public const string Manage = "Referrals.Manage";
+    }
+
+    /// <summary>§4.12 procedures with consent.</summary>
+    public static class Procedures
+    {
+        public const string View = "Procedures.View";
+        public const string Perform = "Procedures.Perform";
+    }
+
+    /// <summary>§4.12 day-care / short-stay admissions.</summary>
+    public static class Admissions
+    {
+        public const string View = "Admissions.View";
+        public const string Manage = "Admissions.Manage";
+    }
+
+    public static class Nursing
+    {
+        /// <summary>Nursing notes and medication chart doses of admitted patients.</summary>
+        public const string Record = "Nursing.Record";
+    }
+
+    public static class CareSetup
+    {
+        /// <summary>Case types, procedure master, beds and rooms.</summary>
+        public const string Manage = "CareSetup.Manage";
+    }
+
+    public static class Expenses
+    {
+        public const string Manage = "Expenses.Manage";
+    }
+
+    public static class Messages
+    {
+        /// <summary>FR-COM-03: queue messages to patients.</summary>
+        public const string Send = "Messages.Send";
+    }
+
+    public static class Feedback
+    {
+        public const string Record = "Feedback.Record";
+
+        /// <summary>FR-FBK-02: assign, work and resolve complaints.</summary>
+        public const string ManageComplaints = "Feedback.ManageComplaints";
+    }
+
     public static class Labs
     {
+        public const string View = "Labs.View";
         public const string Order = "Labs.Order";
         public const string EnterResults = "Labs.EnterResults";
         public const string Verify = "Labs.Verify";
@@ -132,6 +192,12 @@ public static class Permissions
         public const string Discount = "Billing.Discount";
         public const string Refund = "Billing.Refund";
         public const string CashClose = "Billing.CashClose";
+
+        /// <summary>FR-BIL-14: approve credit notes and write-offs (someone other than the requester).</summary>
+        public const string Approve = "Billing.Approve";
+
+        /// <summary>FR-BIL-12 / FR-DOC-05: payers, claims, payer settlements and doctor payouts (online, accounts).</summary>
+        public const string Accounts = "Billing.Accounts";
     }
 
     public static class Inventory

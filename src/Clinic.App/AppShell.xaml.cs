@@ -9,14 +9,23 @@ public partial class AppShell : Shell
     private readonly AuthService _auth;
     private readonly SyncCoordinator _sync;
     private readonly OfflinePinService _pins;
+    private readonly ClientErrorReporter _errors;
+    private Clinic.Client.Core.Sync.SyncPhase? _lastPhase;
     private bool _started;
     private bool _wiping;
 
     public static AppShell Instance => (AppShell)Current;
 
-    public AppShell(SessionStore session, AuthService auth, ApiClient api, SyncCoordinator sync, OfflinePinService pins)
+    /// <summary>FR-SEC-05 auto-lock.</summary>
+    public AppLock Lock { get; }
+
+    public AppShell(SessionStore session, AuthService auth, ApiClient api, SyncCoordinator sync, OfflinePinService pins, AppLock appLock,
+        ClientErrorReporter errors)
     {
         InitializeComponent();
+        Lock = appLock;
+        _errors = errors;
+        Navigated += (_, _) => appLock.Touch();
         _session = session;
         _auth = auth;
         _sync = sync;
@@ -36,6 +45,15 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(Routes.DoctorEdit, typeof(DoctorEditPage));
         Routing.RegisterRoute(Routes.SchedulingSetup, typeof(SchedulingSetupPage));
         Routing.RegisterRoute(Routes.Encounter, typeof(EncounterPage));
+        Routing.RegisterRoute(Routes.Case, typeof(CasePage));
+        Routing.RegisterRoute(Routes.Referral, typeof(ReferralPage));
+        Routing.RegisterRoute(Routes.Procedure, typeof(ProcedurePage));
+        Routing.RegisterRoute(Routes.Admission, typeof(AdmissionPage));
+        Routing.RegisterRoute(Routes.LabResult, typeof(LabResultPage));
+        Routing.RegisterRoute(Routes.PatientBilling, typeof(PatientBillingPage));
+        Routing.RegisterRoute(Routes.Invoice, typeof(InvoicePage));
+        Routing.RegisterRoute(Routes.Dispense, typeof(DispensePage));
+        Routing.RegisterRoute(Routes.Conflict, typeof(ConflictPage));
 
         api.SessionExpired += (_, _) => MainThread.BeginInvokeOnMainThread(async () =>
         {
@@ -55,6 +73,13 @@ public partial class AppShell : Shell
                 FlyoutSync.Text = _sync.IsStarted ? _sync.StatusText : "";
                 SyncItem.Title = _sync.NeedsAttention > 0 ? $"Sync Center ({_sync.NeedsAttention} need attention)"
                     : _sync.Outstanding > 0 ? $"Sync Center ({_sync.Outstanding})" : "Sync Center";
+            }
+            if (e.PropertyName == nameof(SyncCoordinator.StatusText) && _sync.State is { } state && state.Phase != _lastPhase)
+            {
+                _lastPhase = state.Phase;
+                // Sync errors go to the server's error log; a successful sync sends what is queued.
+                if (state.Phase == Clinic.Client.Core.Sync.SyncPhase.Error) ClientErrorReporter.Record("sync", state.Message ?? "Sync error");
+                else if (state.Phase == Clinic.Client.Core.Sync.SyncPhase.Idle) _ = _errors.FlushAsync();
             }
         };
 
@@ -86,6 +111,9 @@ public partial class AppShell : Shell
         }
         ApplyPermissions();
         await GoToAsync($"//{Routes.Home}");
+        Lock.Start(Dispatcher);
+        Lock.Touch();
+        _ = _errors.FlushAsync();
     }
 
     public async Task ShowLoginAsync(string? message = null)
@@ -158,6 +186,7 @@ public partial class AppShell : Shell
     {
         var me = _session.Me;
         FlyoutUser.Text = me?.FullName ?? "";
+        FlyoutInitials.Text = Initials(me?.FullName);
         FlyoutTenant.Text = me is null ? "" : $"{me.TenantName} · {string.Join(", ", me.Roles)}";
         FlyoutSync.Text = _sync.IsStarted ? _sync.StatusText : "";
 
@@ -167,11 +196,34 @@ public partial class AppShell : Shell
         BranchesItem.FlyoutItemIsVisible = _session.Has(Permissions.Branches.View);
         UsersItem.FlyoutItemIsVisible = _session.Has(Permissions.Users.View);
         DevicesItem.FlyoutItemIsVisible = _session.Has(Permissions.Devices.View);
+        DuplicatesItem.FlyoutItemIsVisible = _session.Has(Permissions.Patients.Merge);
+        AuditItem.FlyoutItemIsVisible = _session.Has(Permissions.Audit.View);
         FormsItem.FlyoutItemIsVisible = _session.Has(Permissions.DynamicFields.Manage);
         PatientsItem.FlyoutItemIsVisible = _session.Has(Permissions.Patients.View);
         AppointmentsItem.FlyoutItemIsVisible = _session.Has(Permissions.Appointments.View);
         QueueItem.FlyoutItemIsVisible = _session.Has(Permissions.Queue.Manage);
+        FollowUpsItem.FlyoutItemIsVisible = _session.Has(Permissions.Encounters.View) || _session.Has(Permissions.Cases.View);
+        DayCareItem.FlyoutItemIsVisible = _session.Has(Permissions.Admissions.View);
+        CareSetupItem.FlyoutItemIsVisible = _session.Has(Permissions.CareSetup.Manage);
+        LabItem.FlyoutItemIsVisible = _session.Has(Permissions.Labs.EnterResults) || _session.Has(Permissions.Labs.Verify);
+        CashItem.FlyoutItemIsVisible = _session.Has(Permissions.Billing.CashClose);
+        ApprovalsItem.FlyoutItemIsVisible = _session.Has(Permissions.Billing.Approve);
+        ExpensesItem.FlyoutItemIsVisible = _session.Has(Permissions.Expenses.Manage);
+        ComplaintsItem.FlyoutItemIsVisible = _session.Has(Permissions.Feedback.Record);
+        ReportsItem.FlyoutItemIsVisible = _session.Has(Permissions.Reports.View);
+        StockItem.FlyoutItemIsVisible = _session.Has(Permissions.Inventory.View);
         DoctorsItem.FlyoutItemIsVisible = _session.Has(Permissions.Doctors.Manage) || _session.Has(Permissions.Scheduling.Manage);
+    }
+
+    private static string Initials(string? name)
+    {
+        var parts = (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length switch
+        {
+            0 => "",
+            1 => parts[0][..1].ToUpperInvariant(),
+            _ => $"{char.ToUpperInvariant(parts[0][0])}{char.ToUpperInvariant(parts[^1][0])}",
+        };
     }
 
     private async void OnSignOutClicked(object? sender, EventArgs e) => await SignOutAsync();

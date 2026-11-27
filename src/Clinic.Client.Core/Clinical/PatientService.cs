@@ -140,6 +140,32 @@ public sealed class PatientService(LocalDatabase db, LocalStore store, string de
             items.Add(new TimelineItem(e.StartedAt, "encounter",
                 $"Consultation · {Clinic.Shared.Clinical.EncounterStatus.Display(e.Status)} · {doctors.GetValueOrDefault(e.DoctorId, "Doctor")}", e.Specialty, e.Id));
 
+        foreach (var c in await store.ListAsync<LocalCase>(x => x.PatientId == patientId))
+            items.Add(new TimelineItem(c.OpenedAt, "case", $"Case · {c.Title}", Clinic.Shared.Clinical.CaseStatus.Display(c.Status), c.Id));
+
+        foreach (var pr in await store.ListAsync<LocalProcedure>(x => x.PatientId == patientId))
+            items.Add(new TimelineItem(pr.CompletedAt ?? pr.StartedAt ?? pr.PlannedAt ?? pr.CreatedAt, "procedure", $"Procedure · {pr.Name}",
+                Clinic.Shared.Clinical.ProcedureStatus.Display(pr.Status), pr.Id));
+
+        foreach (var ad in await store.ListAsync<LocalAdmission>(x => x.PatientId == patientId))
+            items.Add(new TimelineItem(ad.AdmittedAt, "admission", "Day-care admission", ad.Status, ad.Id));
+
+        foreach (var r in await store.ListAsync<LocalReferral>(x => x.PatientId == patientId))
+            items.Add(new TimelineItem(r.ReferredAt, "referral", $"Referral ({r.Direction}) · {r.Status}", r.Reason, r.Id));
+
+        foreach (var lr in await store.ListAsync<LocalLabResult>(x => x.PatientId == patientId))
+            items.Add(new TimelineItem(lr.VerifiedAt ?? lr.ResultedAt ?? lr.CreatedAt, "lab",
+                $"Lab · {lr.TestName} · {Clinic.Shared.Clinical.LabStatus.Display(lr.Status)}" + (lr.IsAbnormal ? " · abnormal" : ""), lr.SampleNo, lr.OrderId));
+
+        foreach (var inv in await store.ListAsync<LocalInvoice>(x => x.PatientId == patientId))
+            items.Add(new TimelineItem(inv.IssuedAt, "invoice", $"Invoice {inv.InvoiceNo} · Rs {inv.Total:N0} · {inv.Status}", null, inv.Id));
+
+        foreach (var m in await store.ListAsync<LocalOutboundMessage>(x => x.PatientId == patientId))
+            items.Add(new TimelineItem(m.SentAt ?? m.QueuedAt, "message", $"{m.Channel.ToUpperInvariant()} · {m.TemplateKey ?? "message"} · {m.Status}", m.Error ?? m.Body, m.Id));
+
+        foreach (var pk in await store.ListAsync<LocalPatientPackage>(x => x.PatientId == patientId))
+            items.Add(new TimelineItem(pk.PurchasedAt, "package", $"Package · {pk.Name}", $"valid to {pk.ExpiresAt.ToLocalTime():dd MMM yyyy}", pk.Id));
+
         foreach (var f in await store.ListAsync<LocalAttachment>(x => x.RecordId == patientId))
             items.Add(new TimelineItem(f.CreatedAt, "file", f.Caption ?? f.FileName, f.Category, f.Id));
 
@@ -147,4 +173,12 @@ public sealed class PatientService(LocalDatabase db, LocalStore store, string de
     }
 
     public DateTime Today => _clock.GetLocalNow().Date;
+
+    /// <summary>FR-SEC-07 read-access log: who opened this record, when (synced and audited; works offline).</summary>
+    public Task RecordOpenAsync(Guid patientId, Guid branchId, string action = "open") =>
+        store.InsertAsync(new LocalAccessEvent
+        {
+            Id = Guid.NewGuid(), BranchId = branchId, EntityType = Clinic.Shared.Sync.SyncEntityNames.Patient, RecordId = patientId, Action = action,
+            At = _clock.GetUtcNow().UtcDateTime, UserId = store.Context.UserId,
+        });
 }

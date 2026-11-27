@@ -35,6 +35,9 @@
                                 <Button Text="Retry" Style="{StaticResource SecondaryButton}" IsVisible="{Binding CanRetry}" Margin="0,0,10,6"
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SyncCenterViewModel}}, Path=RetryCommand}"
                                         CommandParameter="{Binding .}" />
+                                <Button Text="Compare fields" IsVisible="{Binding CanKeepMine}" Margin="0,0,10,6"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SyncCenterViewModel}}, Path=CompareCommand}"
+                                        CommandParameter="{Binding .}" />
                                 <Button Text="Keep mine" Style="{StaticResource SecondaryButton}" IsVisible="{Binding CanKeepMine}" Margin="0,0,10,6"
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type vm:SyncCenterViewModel}}, Path=KeepMineCommand}"
                                         CommandParameter="{Binding .}" />

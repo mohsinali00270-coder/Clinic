@@ -77,6 +77,7 @@ public static class EncounterSyncRules
         if (!await db.Patients.AnyAsync(p => p.Id == e.PatientId)) return "Patient not found on the server.";
         if (!await db.DoctorProfiles.AnyAsync(d => d.Id == e.DoctorId)) return "Doctor not found.";
         if (await CanWriteEncounterAsync(db, ctx.User, e, Permissions.Encounters.Edit) is { } denied) return denied;
+        if (await CareSyncRules.CheckCaseLinkAsync(ctx, e, e.CaseId, e.PatientId) is { } caseError) return caseError;
 
         if (ctx.IsNew)
             return EncounterStatus.IsLocked(e.Status) && await SignCheckAsync(ctx, e) is { } signError ? signError : null;
@@ -92,7 +93,8 @@ public static class EncounterSyncRules
         if (EncounterStatus.IsLocked(originalStatus))
         {
             // Locked: only the status may move to "amended", and the follow-up date may change through an amendment.
-            var allowed = new HashSet<string> { nameof(Encounter.Status), nameof(Encounter.FollowUpDate) };
+            // The case link is grouping, not clinical content, so a signed visit can still be filed under a case.
+            var allowed = new HashSet<string> { nameof(Encounter.Status), nameof(Encounter.FollowUpDate), nameof(Encounter.CaseId) };
             if (changed.Any(c => !allowed.Contains(c)))
                 return "This encounter is signed and cannot be edited. Record an amendment instead.";
             if (changed.Contains(nameof(Encounter.Status)) && e.Status != EncounterStatus.Amended)
@@ -100,7 +102,7 @@ public static class EncounterSyncRules
 
             var original = new Encounter { Id = e.Id, Status = originalStatus, SignedBy = e.SignedBy, SignedAt = e.SignedAt };
             if (changed.Contains(nameof(Encounter.FollowUpDate)) && await RequireAmendmentAsync(db, ctx.User, original, FollowUpKey) is { } f) return f;
-            if (changed.Count > 0 && e.SignedBy != ctx.User.UserId) return "Only the signing doctor can amend this encounter.";
+            if (changed.Any(c => c != nameof(Encounter.CaseId)) && e.SignedBy != ctx.User.UserId) return "Only the signing doctor can amend this encounter.";
             if (changed.Contains(nameof(Encounter.Status)) &&
                 !await db.EncounterAmendments.AnyAsync(a => a.EncounterId == e.Id && a.AmendedBy == ctx.User.UserId))
                 return "Record at least one amendment before marking the encounter amended.";
@@ -238,6 +240,7 @@ public static class EncounterSyncRules
     /// <summary>§7.4: clinical values are never overwritten automatically.</summary>
     public static ConflictPolicy FieldValuePolicy(object fieldValue) =>
         ((Domain.Forms.FieldValue)fieldValue).EntityType is SyncEntityNames.Encounter or SyncEntityNames.Vitals
+            or SyncEntityNames.Case or SyncEntityNames.Procedure or SyncEntityNames.LabResult
             ? ConflictPolicy.Manual
             : ConflictPolicy.LastWriterWins;
 }

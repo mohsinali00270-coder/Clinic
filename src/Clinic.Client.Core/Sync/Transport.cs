@@ -48,6 +48,12 @@ public interface ISyncTransport
     Task<SyncPushResponse> PushAsync(SyncPushRequest request, CancellationToken ct);
     Task<SyncPullResponse> PullAsync(long since, int pageSize, CancellationToken ct);
     Task<NumberRangeDto> LeaseNumbersAsync(string kind, int size, CancellationToken ct);
+
+    /// <summary>FR-SYN-30: report conflicts resolved on the device.</summary>
+    Task ReportResolutionsAsync(IReadOnlyList<ConflictResolutionReport> reports, CancellationToken ct) => Task.CompletedTask;
+
+    /// <summary>FR-SYN-23: a compressed NDJSON snapshot (one pull page per line) for a device starting from nothing; null when not offered.</summary>
+    Task<Stream?> SnapshotAsync(CancellationToken ct) => Task.FromResult<Stream?>(null);
 }
 
 /// <summary>
@@ -83,7 +89,21 @@ public sealed class HttpSyncTransport(
         return await SendAsync<NumberRangeDto>(message, ct);
     }
 
-    private async Task<T> SendAsync<T>(HttpRequestMessage message, CancellationToken ct)
+    public async Task ReportResolutionsAsync(IReadOnlyList<ConflictResolutionReport> reports, CancellationToken ct)
+    {
+        using var message = new HttpRequestMessage(HttpMethod.Post, SyncRoutes.Resolutions) { Content = JsonContent.Create(reports, options: Json) };
+        await SendAsync<object>(message, ct);
+    }
+
+    public async Task<Stream?> SnapshotAsync(CancellationToken ct)
+    {
+        var url = $"{SyncRoutes.Snapshot}?deviceId={context.DeviceId}&appVersion={Uri.EscapeDataString(context.AppVersion)}";
+        using var message = new HttpRequestMessage(HttpMethod.Get, url);
+        var bytes = await SendAsync<byte[]>(message, ct, raw: true);
+        return new GZipStream(new MemoryStream(bytes), CompressionMode.Decompress);
+    }
+
+    private async Task<T> SendAsync<T>(HttpRequestMessage message, CancellationToken ct, bool raw = false)
     {
         string? token;
         try
@@ -111,7 +131,11 @@ public sealed class HttpSyncTransport(
         using (response)
         {
             if (response.IsSuccessStatusCode)
+            {
+                if (raw) return (T)(object)await response.Content.ReadAsByteArrayAsync(ct);
+                if (response.StatusCode == HttpStatusCode.NoContent) return default!;
                 return (await response.Content.ReadFromJsonAsync<T>(Json, ct))!;
+            }
 
             var problem = await ReadProblemAsync(response, ct);
             var kind = response.StatusCode switch

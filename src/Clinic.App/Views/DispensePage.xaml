@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.DispensePage"
+             x:DataType="vm:DispenseViewModel"
+             Title="Dispense">
+    <RefreshView Command="{Binding LoadCommand}" IsRefreshing="{Binding IsBusy}">
+        <ScrollView>
+            <VerticalStackLayout Padding="20,12" Spacing="10" MaximumWidthRequest="900">
+                <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+                <Label Text="{Binding PatientName}" Style="{StaticResource PageTitle}" FontSize="20" />
+                <HorizontalStackLayout Spacing="8">
+                    <Button Text="Over the counter" Command="{Binding OverTheCounterCommand}" Style="{StaticResource SecondaryButton}" />
+                    <Button Text="Bill" Command="{Binding BillCommand}" />
+                </HorizontalStackLayout>
+                <Label Text="To dispense (tap a line)" Style="{StaticResource FieldLabel}" FontSize="15" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Lines}" Spacing="4">
+                    <BindableLayout.EmptyView><Label Text="Nothing here." Style="{StaticResource Muted}" /></BindableLayout.EmptyView>
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CareRow">
+                            <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DispenseViewModel}}, Path=DispenseLineCommand}" CommandParameter="{Binding .}" />
+                                </VerticalStackLayout.GestureRecognizers>
+                                <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding Detail}" TextColor="{Binding TitleColor}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Label Text="Dispensed" Style="{StaticResource FieldLabel}" FontSize="15" Margin="0,8,0,0" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Dispensed}" Spacing="4">
+                    <BindableLayout.EmptyView><Label Text="Nothing here." Style="{StaticResource Muted}" /></BindableLayout.EmptyView>
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CareRow">
+                            <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

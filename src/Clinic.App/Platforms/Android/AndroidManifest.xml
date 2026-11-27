@@ -3,4 +3,14 @@
 	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true"></application>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
+	<!-- Phase 5b on-device assist: dictation (FR-AI-20), document photos for OCR (FR-AI-21) -->
+	<uses-permission android:name="android.permission.RECORD_AUDIO" />
+	<uses-permission android:name="android.permission.CAMERA" />
+	<queries>
+		<intent><action android:name="android.speech.RecognitionService" /></intent>
+		<intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
+		<intent><action android:name="android.media.action.IMAGE_CAPTURE" /></intent>
+		<intent><action android:name="android.intent.action.DIAL" /></intent>
+		<intent><action android:name="android.intent.action.SENDTO" /><data android:scheme="sms" /></intent>
+	</queries>
 </manifest>

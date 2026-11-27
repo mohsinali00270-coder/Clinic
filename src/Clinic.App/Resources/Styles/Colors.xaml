@@ -1,38 +1,97 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<ResourceDictionary 
+<!--
+    Clinic design tokens. Every colour in the app comes from here.
+    Light: deep navy brand on soft white / light-gray surfaces, medical teal as the accent.
+    Dark: navy-black surfaces, teal as the interactive colour.
+    Text/background pairs meet WCAG AA (4.5:1) for body text.
+    Android launcher/status colours: Platforms/Android/Resources/values/colors.xml.
+-->
+<ResourceDictionary
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
+    <!-- Brand -->
+    <Color x:Key="Navy900">#081A33</Color>
+    <Color x:Key="Navy800">#0B2545</Color>
+    <Color x:Key="Navy700">#13315C</Color>
+    <Color x:Key="Navy600">#1D4475</Color>
+    <Color x:Key="Teal700">#0F766E</Color>
+    <Color x:Key="Teal600">#0D9488</Color>
+    <Color x:Key="Teal500">#14B8A6</Color>
+    <Color x:Key="Teal300">#5EEAD4</Color>
+    <Color x:Key="Teal50">#E6F6F4</Color>
 
-    <Color x:Key="Primary">#0F766E</Color>
-    <Color x:Key="PrimaryDark">#5EEAD4</Color>
-    <Color x:Key="PrimaryDarkText">#242424</Color>
-    <Color x:Key="Secondary">#CCFBF1</Color>
-    <Color x:Key="SecondaryDarkText">#9880e5</Color>
-    <Color x:Key="Tertiary">#134E4A</Color>
+    <!-- Semantic roles (keys kept from earlier phases: Primary, PrimaryDark, Secondary, Tertiary…) -->
+    <Color x:Key="Primary">#0B2545</Color>            <!-- buttons, headers (light) -->
+    <Color x:Key="PrimaryDark">#2DD4BF</Color>        <!-- buttons, links (dark) -->
+    <Color x:Key="PrimaryDarkText">#042F2B</Color>    <!-- text on PrimaryDark -->
+    <Color x:Key="PrimaryHover">#13315C</Color>
+    <Color x:Key="PrimaryDarkHover">#5EEAD4</Color>
+    <Color x:Key="Accent">#0F766E</Color>             <!-- teal text/icons on light -->
+    <Color x:Key="AccentDark">#2DD4BF</Color>
+    <Color x:Key="Secondary">#E6F6F4</Color>          <!-- badge / tonal backgrounds (light) -->
+    <Color x:Key="SecondaryDarkText">#CBD5E1</Color>
+    <Color x:Key="Tertiary">#123B3A</Color>           <!-- badge background (dark) -->
+    <Color x:Key="TonalLight">#E9EFF7</Color>         <!-- secondary button (light) -->
+    <Color x:Key="TonalDark">#1B2A42</Color>          <!-- secondary button (dark) -->
+    <Color x:Key="OnNavyDisabled">#8FA6C2</Color>     <!-- disabled toolbar item on the navy bar -->
+
+    <!-- Status -->
+    <Color x:Key="Success">#15803D</Color>
+    <Color x:Key="SuccessDark">#4ADE80</Color>
+    <Color x:Key="SuccessSoft">#E7F6EC</Color>
+    <Color x:Key="SuccessSoftDark">#13301F</Color>
+    <Color x:Key="Warning">#B45309</Color>
+    <Color x:Key="WarningDark">#FBBF24</Color>
+    <Color x:Key="WarningSoft">#FEF3E2</Color>
+    <Color x:Key="WarningSoftDark">#3A2A0E</Color>
+    <Color x:Key="Danger">#B91C1C</Color>
+    <Color x:Key="DangerDark">#FCA5A5</Color>
+    <Color x:Key="DangerSoft">#FDECEC</Color>
+    <Color x:Key="DangerSoftDark">#3B1519</Color>
+    <Color x:Key="Info">#1D4ED8</Color>
+    <Color x:Key="InfoDark">#93C5FD</Color>
+    <Color x:Key="InfoSoft">#E8EFFD</Color>
+    <Color x:Key="InfoSoftDark">#162A4D</Color>
+
+    <!-- Surfaces -->
+    <Color x:Key="Background">#F4F7FA</Color>         <!-- page (light) -->
+    <Color x:Key="BackgroundDark">#0A1120</Color>
+    <Color x:Key="Surface">#FFFFFF</Color>            <!-- card (light) -->
+    <Color x:Key="SurfaceDark">#111B2E</Color>
+    <Color x:Key="SurfaceRaised">#FFFFFF</Color>
+    <Color x:Key="SurfaceRaisedDark">#16233A</Color>
+    <Color x:Key="InputLight">#F1F5F9</Color>         <!-- filled input -->
+    <Color x:Key="InputDark">#0C1627</Color>
+    <Color x:Key="Outline">#E2E8F0</Color>
+    <Color x:Key="OutlineDark">#22314A</Color>
+    <Color x:Key="TextPrimary">#0F172A</Color>
+    <Color x:Key="TextPrimaryDark">#E8EEF6</Color>
+    <Color x:Key="TextSecondary">#5B6B80</Color>      <!-- 5.3:1 on white -->
+    <Color x:Key="TextSecondaryDark">#97A6BA</Color>  <!-- 6.4:1 on SurfaceDark -->
 
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>
-    <Color x:Key="Magenta">#D600AA</Color>
-    <Color x:Key="MidnightBlue">#190649</Color>
-    <Color x:Key="OffBlack">#1f1f1f</Color>
+    <Color x:Key="Magenta">#0F766E</Color>            <!-- legacy key, now teal -->
+    <Color x:Key="MidnightBlue">#0B2545</Color>
+    <Color x:Key="OffBlack">#0A1120</Color>
 
-    <Color x:Key="Gray100">#E1E1E1</Color>
-    <Color x:Key="Gray200">#C8C8C8</Color>
-    <Color x:Key="Gray300">#ACACAC</Color>
-    <Color x:Key="Gray400">#919191</Color>
-    <Color x:Key="Gray500">#6E6E6E</Color>
-    <Color x:Key="Gray600">#404040</Color>
-    <Color x:Key="Gray900">#212121</Color>
-    <Color x:Key="Gray950">#141414</Color>
+    <!-- Slate scale (kept keys; pages use Gray100/Gray950 for section bands) -->
+    <Color x:Key="Gray100">#EEF2F7</Color>
+    <Color x:Key="Gray200">#DCE3EC</Color>
+    <Color x:Key="Gray300">#B4C0CE</Color>
+    <Color x:Key="Gray400">#8A98AB</Color>
+    <Color x:Key="Gray500">#5B6B80</Color>
+    <Color x:Key="Gray600">#2A3A52</Color>
+    <Color x:Key="Gray900">#0F172A</Color>
+    <Color x:Key="Gray950">#0C1627</Color>
 
+    <!-- Brushes -->
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
     <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
     <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
     <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
-
     <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}"/>
     <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}"/>
     <SolidColorBrush x:Key="Gray300Brush" Color="{StaticResource Gray300}"/>
@@ -41,4 +100,16 @@
     <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
     <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
     <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+
+    <!-- Gradients: used sparingly (dashboard hero, sign-in, flyout header) -->
+    <LinearGradientBrush x:Key="HeroGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#0B2545" Offset="0.0" />
+        <GradientStop Color="#13406B" Offset="0.55" />
+        <GradientStop Color="#0F766E" Offset="1.0" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="HeroGradientDark" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#0E1F3A" Offset="0.0" />
+        <GradientStop Color="#123355" Offset="0.55" />
+        <GradientStop Color="#0B5E58" Offset="1.0" />
+    </LinearGradientBrush>
 </ResourceDictionary>

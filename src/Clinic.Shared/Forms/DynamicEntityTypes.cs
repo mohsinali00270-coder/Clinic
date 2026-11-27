@@ -16,6 +16,9 @@ public static class DynamicEntityTypes
     private static readonly ContextVariable AgeYears = new("ageYears", "Patient age in whole years", FieldType.Integer);
     private static readonly ContextVariable AgeMonths = new("ageMonths", "Patient age in whole months", FieldType.Integer);
     private static readonly ContextVariable Specialty = new("specialty", "Specialty code of the encounter", FieldType.Text);
+    private static readonly ContextVariable CaseType = new("caseType", "Case type code (e.g. pregnancy)", FieldType.Text);
+    private static readonly ContextVariable TestCode = new("test", "Lab test code (e.g. cbc)", FieldType.Text);
+    private static readonly ContextVariable ProcedureCode = new("procedure", "Procedure code (e.g. dressing)", FieldType.Text);
 
     public static IReadOnlyList<DynamicEntityType> All { get; } =
     [
@@ -25,9 +28,9 @@ public static class DynamicEntityTypes
         new("Doctor", "Doctor profile", [], "Phase 4"),
         new("Encounter", "Consultation (encounter)", [Gender, AgeYears, AgeMonths, Specialty], "Phase 5"),
         new("Vitals", "Vitals", [Gender, AgeYears, AgeMonths], "Phase 5"),
-        new("Case", "Patient case (episode of care)", [Gender, AgeYears], "Phase 5"),
-        new("Procedure", "Procedure note", [Gender, AgeYears], "Phase 5"),
-        new("LabTest", "Lab result parameters", [Gender, AgeYears], "Phase 6"),
+        new("Case", "Patient case (episode of care)", [Gender, AgeYears, CaseType], "Phase 5"),
+        new("Procedure", "Procedure note", [Gender, AgeYears, ProcedureCode], "Phase 5"),
+        new("LabResult", "Lab result parameters", [Gender, AgeYears, AgeMonths, TestCode], "Phase 6"),
         new("Invoice", "Invoice", [], "Phase 6"),
         new("InventoryItem", "Inventory item", [], "Phase 7"),
         new("Feedback", "Patient feedback", [], "Phase 6"),

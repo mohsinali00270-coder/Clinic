@@ -7,21 +7,27 @@
              Shell.NavBarIsVisible="False"
              Shell.FlyoutBehavior="Disabled"
              Title="Unlock">
-    <ScrollView>
-        <Grid Padding="24" RowDefinitions="*,Auto,*">
-            <Border Grid.Row="1" Style="{StaticResource Card}" Padding="28" MaximumWidthRequest="400">
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="Unlock" Style="{StaticResource PageTitle}" HorizontalOptions="Center" />
-                    <Label Text="{Binding Greeting}" Style="{StaticResource Muted}" HorizontalOptions="Center" />
-                    <Entry Text="{Binding Pin}" IsPassword="True" Keyboard="Numeric" MaxLength="8" Placeholder="PIN"
-                           HorizontalTextAlignment="Center" FontSize="22" ReturnCommand="{Binding UnlockCommand}"
-                           SemanticProperties.Description="Offline PIN" Margin="0,12,0,0" />
-                    <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" HorizontalOptions="Center" />
-                    <Button Text="Unlock" Command="{Binding UnlockCommand}" MinimumHeightRequest="44" Margin="0,8,0,0" />
-                    <Button Text="Sign in with password instead" Command="{Binding UsePasswordCommand}"
-                            Style="{StaticResource SecondaryButton}" BorderWidth="0" FontSize="13" />
-                </VerticalStackLayout>
-            </Border>
-        </Grid>
-    </ScrollView>
+    <Grid Background="{AppThemeBinding Light={StaticResource HeroGradient}, Dark={StaticResource HeroGradientDark}}">
+        <ScrollView>
+            <Grid Padding="20,32" RowDefinitions="*,Auto,*">
+                <Border Grid.Row="1" Style="{StaticResource ElevatedCard}" Padding="28,26" MaximumWidthRequest="400"
+                        StrokeShape="RoundRectangle 22" Stroke="Transparent">
+                    <VerticalStackLayout Spacing="8">
+                        <Image Source="brand_mark.png" WidthRequest="52" HeightRequest="52" HorizontalOptions="Center"
+                               SemanticProperties.Description="Clinic logo" />
+                        <Label Text="Unlock" Style="{StaticResource PageTitle}" FontSize="22" HorizontalOptions="Center" />
+                        <Label Text="{Binding Greeting}" Style="{StaticResource Muted}" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                        <Entry Text="{Binding Pin}" IsPassword="True" Keyboard="Numeric" MaxLength="8" Placeholder="PIN"
+                               HorizontalTextAlignment="Center" FontSize="24" CharacterSpacing="6" ReturnCommand="{Binding UnlockCommand}"
+                               SemanticProperties.Description="Offline PIN" Margin="0,12,0,0" MinimumHeightRequest="54" />
+                        <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center" />
+                        <Button Text="Unlock" Command="{Binding UnlockCommand}" MinimumHeightRequest="48" Margin="0,8,0,0" />
+                        <Button Text="Sign in with password instead" Command="{Binding UsePasswordCommand}"
+                                Style="{StaticResource LinkButton}" FontSize="13" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+        </ScrollView>
+    </Grid>
 </ContentPage>

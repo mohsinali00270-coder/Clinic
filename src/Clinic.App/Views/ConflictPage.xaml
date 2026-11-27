@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.ConflictPage"
+             x:DataType="vm:ConflictViewModel"
+             Title="Resolve conflict">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Padding="20,12" RowSpacing="10" MaximumWidthRequest="760">
+        <VerticalStackLayout Spacing="2">
+            <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" FontSize="18" />
+            <Label Text="Someone else changed the same fields. For each field, choose your value or the one already on the server."
+                   Style="{StaticResource Muted}" />
+        </VerticalStackLayout>
+        <HorizontalStackLayout Grid.Row="1" Spacing="10">
+            <Button Text="All mine" Style="{StaticResource SecondaryButton}" Command="{Binding AllMineCommand}" />
+            <Button Text="All theirs" Style="{StaticResource SecondaryButton}" Command="{Binding AllTheirsCommand}" />
+        </HorizontalStackLayout>
+        <Label Grid.Row="2" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+        <CollectionView Grid.Row="3" ItemsSource="{Binding Fields}" SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:ConflictFieldRow">
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,10">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="{Binding Name}" FontFamily="OpenSansSemibold" />
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                <RadioButton IsChecked="{Binding UseMine}" GroupName="{Binding Field.Field}" VerticalOptions="Start" />
+                                <VerticalStackLayout Grid.Column="1">
+                                    <Label Text="Mine" Style="{StaticResource Muted}" FontSize="12" />
+                                    <Label Text="{Binding MineText}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                <RadioButton IsChecked="{Binding UseTheirs}" GroupName="{Binding Field.Field}" VerticalOptions="Start" />
+                                <VerticalStackLayout Grid.Column="1">
+                                    <Label Text="Theirs (server)" Style="{StaticResource Muted}" FontSize="12" />
+                                    <Label Text="{Binding TheirsText}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Grid.Row="4" Text="Save and sync" Command="{Binding SaveCommand}" IsEnabled="{Binding IsNotBusy}" />
+    </Grid>
+</ContentPage>

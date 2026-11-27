@@ -1,0 +1,15 @@
+{ "key": "lab_lipid", "name": "Lab: lipid profile", "entityType": "LabResult",
+  "description": "Cholesterol, triglycerides, HDL, LDL (calculated by Friedewald) with targets. Publish with context 'lipid'.",
+  "definition": { "entityType": "LabResult", "name": { "en": "Lipid profile" },
+  "sections": [ { "key": "lipid", "title": { "en": "Results (mg/dL)" }, "fields": [
+    { "key": "total_cholesterol", "type": "integer", "label": { "en": "Total cholesterol" }, "unit": "mg/dL", "min": 30, "max": 800, "required": true, "columns": 1,
+      "help": { "en": "Desirable < 200" }, "abnormal": [ { "when": "value >= 240", "severity": "warning", "message": { "en": "High" } } ] },
+    { "key": "triglycerides", "type": "integer", "label": { "en": "Triglycerides" }, "unit": "mg/dL", "min": 10, "max": 5000, "required": true, "columns": 1,
+      "help": { "en": "Normal < 150" }, "abnormal": [ { "when": "value >= 200", "severity": "warning", "message": { "en": "High" } },
+                                                   { "when": "value >= 1000", "severity": "critical", "message": { "en": "Pancreatitis risk" } } ] },
+    { "key": "hdl", "type": "integer", "label": { "en": "HDL cholesterol" }, "unit": "mg/dL", "min": 5, "max": 200, "required": true, "columns": 1,
+      "help": { "en": "Ref: M > 40 · F > 50" }, "abnormal": [ { "when": "(gender == 'F' && value < 50) || (gender != 'F' && value < 40)", "severity": "warning", "message": { "en": "Low" } } ] },
+    { "key": "ldl", "type": "calculated", "label": { "en": "LDL cholesterol (calculated)" }, "unit": "mg/dL", "columns": 1,
+      "formula": "if(triglycerides < 400, round(total_cholesterol - hdl - triglycerides / 5, 0), null)", "help": { "en": "Optimal < 100" },
+      "abnormal": [ { "when": "value >= 160", "severity": "warning", "message": { "en": "High" } } ] }
+  ] } ] } }

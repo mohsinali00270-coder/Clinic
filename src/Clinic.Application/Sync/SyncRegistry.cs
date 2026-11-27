@@ -161,7 +161,7 @@ public static class SyncRegistry
             WritableFields = new HashSet<string>
             {
                 "patientId", "doctorId", "branchId", "appointmentId", "specialty", "startedAt", "status", "signedAt", "signedBy",
-                "followUpDate", "formVersionId", "patientGender", "patientDateOfBirth",
+                "followUpDate", "formVersionId", "patientGender", "patientDateOfBirth", "caseId",
             },
             HiddenFields = new HashSet<string> { "dynamicData" },
             Validate = EncounterSyncRules.ValidateEncounter,
@@ -237,6 +237,377 @@ public static class SyncRegistry
             Policy = ConflictPolicy.LastWriterWins,
             WritableFields = new HashSet<string> { "doctorId", "name", "itemsJson" },
             Authorize = EncounterSyncRules.AuthorizeTemplateAsync,
+        },
+        // Phase 5b masters (server wins; edited through the care setup API).
+        new() { Name = SyncEntityNames.CaseType, ClrType = typeof(CaseType), Order = 42 },
+        new() { Name = SyncEntityNames.ProcedureType, ClrType = typeof(ProcedureType), Order = 43 },
+        new() { Name = SyncEntityNames.Bed, ClrType = typeof(Bed), Order = 44 },
+
+        // Section 4.10 cases: before encounters, which link to them.
+        new()
+        {
+            Name = SyncEntityNames.Case,
+            ClrType = typeof(PatientCase),
+            Order = 315,
+            ViewPermission = Permissions.Cases.View,
+            WritePermission = Permissions.Cases.Manage,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.Case,
+            HiddenFields = new HashSet<string> { "dynamicData" },
+            Validate = CareSyncRules.ValidateCase,
+            Authorize = CareSyncRules.AuthorizeCaseAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.CarePlanStep,
+            ClrType = typeof(CarePlanStep),
+            Order = 316,
+            ViewPermission = Permissions.Cases.View,
+            WritePermission = Permissions.Cases.Manage,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.CarePlanStep,
+            Validate = CareSyncRules.ValidateStep,
+            Authorize = CareSyncRules.AuthorizeStepAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.CaseMember,
+            ClrType = typeof(CaseMember),
+            Order = 317,
+            ViewPermission = Permissions.Cases.View,
+            WritePermission = Permissions.Cases.Manage,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.CaseMember,
+            Validate = CareSyncRules.ValidateMember,
+            Authorize = CareSyncRules.AuthorizeMemberAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.CaseNote,
+            ClrType = typeof(CaseNote),
+            Order = 318,
+            ViewPermission = Permissions.Cases.View,
+            WritePermission = Permissions.Cases.Manage,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.CaseNote,
+            Validate = CareSyncRules.ValidateCaseNote,
+            Authorize = CareSyncRules.AuthorizeCaseNoteAsync,
+        },
+
+        // Section 4.12 day care, then procedures (which may belong to an admission), then referrals (4.11).
+        new()
+        {
+            Name = SyncEntityNames.Admission,
+            ClrType = typeof(Admission),
+            Order = 330,
+            ViewPermission = Permissions.Admissions.View,
+            WritePermission = Permissions.Admissions.Manage,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.Admission,
+            Validate = CareSyncRules.ValidateAdmission,
+            Authorize = CareSyncRules.AuthorizeAdmissionAsync,
+            AfterApplyAsync = CareSyncRules.AdmissionAfterApplyAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.BedTransfer,
+            ClrType = typeof(BedTransfer),
+            Order = 331,
+            ViewPermission = Permissions.Admissions.View,
+            WritePermission = Permissions.Admissions.Manage,
+            WritableFields = CareSyncFields.BedTransfer,
+            Authorize = CareSyncRules.AuthorizeTransferAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.NursingNote,
+            ClrType = typeof(NursingNote),
+            Order = 332,
+            ViewPermission = Permissions.Admissions.View,
+            WritePermission = Permissions.Nursing.Record,
+            Policy = ConflictPolicy.Manual,
+            WritableFields = CareSyncFields.NursingNote,
+            Validate = CareSyncRules.ValidateNursingNote,
+            Authorize = CareSyncRules.AuthorizeNursingNoteAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.MedicationOrder,
+            ClrType = typeof(MedicationOrder),
+            Order = 333,
+            ViewPermission = Permissions.Admissions.View,
+            WritePermission = SyncEntityDescriptor.CustomPermission,
+            Policy = ConflictPolicy.Manual,
+            WritableFields = CareSyncFields.MedicationOrder,
+            Validate = CareSyncRules.ValidateMedicationOrder,
+            Authorize = CareSyncRules.AuthorizeMedicationOrderAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.MedicationDose,
+            ClrType = typeof(MedicationDose),
+            Order = 334,
+            ViewPermission = Permissions.Admissions.View,
+            WritePermission = Permissions.Nursing.Record,
+            Policy = ConflictPolicy.Manual,
+            WritableFields = CareSyncFields.MedicationDose,
+            Validate = CareSyncRules.ValidateDose,
+            Authorize = CareSyncRules.AuthorizeDoseAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.Procedure,
+            ClrType = typeof(ProcedureRecord),
+            Order = 335,
+            ViewPermission = Permissions.Procedures.View,
+            WritePermission = Permissions.Procedures.Perform,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.Procedure,
+            HiddenFields = new HashSet<string> { "dynamicData" },
+            Validate = CareSyncRules.ValidateProcedure,
+            Authorize = CareSyncRules.AuthorizeProcedureAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.Referral,
+            ClrType = typeof(Referral),
+            Order = 340,
+            ViewPermission = Permissions.Referrals.View,
+            WritePermission = Permissions.Referrals.Manage,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.Referral,
+            Validate = CareSyncRules.ValidateReferral,
+            Authorize = CareSyncRules.AuthorizeReferralAsync,
+        },
+        // Phase 6 masters (server wins).
+        new() { Name = SyncEntityNames.LabTest, ClrType = typeof(LabTest), Order = 45 },
+        new() { Name = SyncEntityNames.ServiceItem, ClrType = typeof(ServiceItem), Order = 46 },
+
+        // Section 4.5 labs, after procedures; section 4.6 billing last, since invoices point at everything above.
+        new()
+        {
+            Name = SyncEntityNames.LabOrder,
+            ClrType = typeof(LabOrder),
+            Order = 350,
+            ViewPermission = Permissions.Labs.View,
+            WritePermission = SyncEntityDescriptor.CustomPermission,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.LabOrder,
+            Validate = LabBillingSyncRules.ValidateLabOrder,
+            Authorize = LabBillingSyncRules.AuthorizeLabOrderAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.LabResult,
+            ClrType = typeof(LabResult),
+            Order = 351,
+            ViewPermission = Permissions.Labs.View,
+            WritePermission = SyncEntityDescriptor.CustomPermission,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.LabResult,
+            HiddenFields = new HashSet<string> { "dynamicData" },
+            Validate = LabBillingSyncRules.ValidateLabResult,
+            Authorize = LabBillingSyncRules.AuthorizeLabResultAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.Invoice,
+            ClrType = typeof(Invoice),
+            Order = 360,
+            ViewPermission = Permissions.Billing.View,
+            WritePermission = Permissions.Billing.Collect,
+            Policy = ConflictPolicy.Manual,
+            WritableFields = CareSyncFields.Invoice,
+            Validate = LabBillingSyncRules.ValidateInvoice,
+            Authorize = LabBillingSyncRules.AuthorizeInvoiceAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.InvoiceLine,
+            ClrType = typeof(InvoiceLine),
+            Order = 361,
+            ViewPermission = Permissions.Billing.View,
+            WritePermission = Permissions.Billing.Collect,
+            Policy = ConflictPolicy.Manual,
+            WritableFields = CareSyncFields.InvoiceLine,
+            Validate = LabBillingSyncRules.ValidateLine,
+            Authorize = LabBillingSyncRules.AuthorizeLineAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.Payment,
+            ClrType = typeof(Payment),
+            Order = 362,
+            ViewPermission = Permissions.Billing.View,
+            WritePermission = SyncEntityDescriptor.CustomPermission,
+            WritableFields = CareSyncFields.Payment,
+            Validate = LabBillingSyncRules.ValidatePayment,
+            Authorize = LabBillingSyncRules.AuthorizePaymentAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.CashClosing,
+            ClrType = typeof(CashClosing),
+            Order = 363,
+            ViewPermission = Permissions.Billing.View,
+            WritePermission = Permissions.Billing.CashClose,
+            WritableFields = CareSyncFields.CashClosing,
+            Authorize = LabBillingSyncRules.AuthorizeCashClosingAsync,
+        },
+        // Phase 6b masters (server wins).
+        new() { Name = SyncEntityNames.PackagePlan, ClrType = typeof(PackagePlan), Order = 47 },
+        new() { Name = SyncEntityNames.Payer, ClrType = typeof(Payer), Order = 48 },
+        new() { Name = SyncEntityNames.MessageTemplate, ClrType = typeof(MessageTemplate), Order = 49 },
+
+        // Patient-level settings follow the patient; packages precede the invoice lines that sell them.
+        new()
+        {
+            Name = SyncEntityNames.PatientPanel,
+            ClrType = typeof(PatientPanel),
+            Order = 205,
+            ViewPermission = Permissions.Billing.View,
+            WritePermission = Permissions.Billing.Collect,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.PatientPanel,
+            Authorize = AccountsSyncRules.AuthorizePanelAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.ContactPreference,
+            ClrType = typeof(ContactPreference),
+            Order = 206,
+            ViewPermission = Permissions.Patients.View,
+            WritePermission = SyncEntityDescriptor.CustomPermission,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.ContactPreference,
+            UpsertOnInsert = true, // one row per patient, id derived from the patient
+            Authorize = AccountsSyncRules.AuthorizePreferenceAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.PatientPackage,
+            ClrType = typeof(PatientPackage),
+            Order = 355,
+            ViewPermission = Permissions.Billing.View,
+            WritePermission = Permissions.Billing.Collect,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.PatientPackage,
+            Authorize = AccountsSyncRules.AuthorizePatientPackageAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.PackageUsage,
+            ClrType = typeof(PackageUsage),
+            Order = 365,
+            ViewPermission = Permissions.Billing.View,
+            WritePermission = Permissions.Billing.Collect,
+            WritableFields = CareSyncFields.PackageUsage,
+            Authorize = AccountsSyncRules.AuthorizeUsageAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.CreditNote,
+            ClrType = typeof(CreditNote),
+            Order = 366,
+            ViewPermission = Permissions.Billing.View,
+            WritePermission = SyncEntityDescriptor.CustomPermission,
+            WritableFields = CareSyncFields.CreditNote,
+            Validate = AccountsSyncRules.ValidateCredit,
+            Authorize = AccountsSyncRules.AuthorizeCreditAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.Expense,
+            ClrType = typeof(Expense),
+            Order = 367,
+            ViewPermission = Permissions.Expenses.Manage,
+            WritePermission = Permissions.Expenses.Manage,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.Expense,
+            Validate = AccountsSyncRules.ValidateExpense,
+            Authorize = AccountsSyncRules.AuthorizeExpenseAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.OutboundMessage,
+            ClrType = typeof(OutboundMessage),
+            Order = 370,
+            ViewPermission = Permissions.Messages.Send,
+            WritePermission = Permissions.Messages.Send,
+            WritableFields = CareSyncFields.OutboundMessage,
+            Validate = AccountsSyncRules.ValidateMessage,
+            Authorize = AccountsSyncRules.AuthorizeMessageAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.Feedback,
+            ClrType = typeof(Feedback),
+            Order = 371,
+            ViewPermission = Permissions.Feedback.Record,
+            WritePermission = Permissions.Feedback.Record,
+            WritableFields = CareSyncFields.Feedback,
+            HiddenFields = new HashSet<string> { "dynamicData" },
+            Validate = AccountsSyncRules.ValidateFeedback,
+            Authorize = AccountsSyncRules.AuthorizeFeedbackAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.Complaint,
+            ClrType = typeof(Complaint),
+            Order = 372,
+            ViewPermission = Permissions.Feedback.Record,
+            WritePermission = SyncEntityDescriptor.CustomPermission,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.Complaint,
+            Validate = AccountsSyncRules.ValidateComplaint,
+            Authorize = AccountsSyncRules.AuthorizeComplaintAsync,
+        },
+        // Phase 7 inventory: the item master (server wins), then batches, dispensations and the movement ledger.
+        new() { Name = SyncEntityNames.InventoryItem, ClrType = typeof(InventoryItem), Order = 50 },
+        new()
+        {
+            Name = SyncEntityNames.StockBatch,
+            ClrType = typeof(StockBatch),
+            Order = 379,
+            ViewPermission = Permissions.Inventory.View,
+            WritePermission = Permissions.Inventory.StockIn,
+            Policy = ConflictPolicy.LastWriterWins,
+            WritableFields = CareSyncFields.StockBatch,
+            Authorize = InventorySyncRules.AuthorizeBatchAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.Dispensation,
+            ClrType = typeof(Dispensation),
+            Order = 380,
+            ViewPermission = Permissions.Billing.View,
+            WritePermission = Permissions.Prescriptions.Dispense,
+            WritableFields = CareSyncFields.Dispensation,
+            Validate = InventorySyncRules.ValidateDispensation,
+            Authorize = InventorySyncRules.AuthorizeDispensationAsync,
+        },
+        new()
+        {
+            Name = SyncEntityNames.StockMovement,
+            ClrType = typeof(StockMovement),
+            Order = 381,
+            ViewPermission = Permissions.Inventory.View,
+            WritePermission = SyncEntityDescriptor.CustomPermission,
+            WritableFields = CareSyncFields.StockMovement,
+            Validate = InventorySyncRules.ValidateMovement,
+            Authorize = InventorySyncRules.AuthorizeMovementAsync,
+        },
+        // Phase 8: read-access log (FR-SEC-07), written on devices, read by auditors only.
+        new()
+        {
+            Name = SyncEntityNames.AccessEvent,
+            ClrType = typeof(AccessEvent),
+            Order = 900,
+            ViewPermission = Permissions.Audit.View,
+            WritePermission = Permissions.Patients.View,
+            WritableFields = CareSyncFields.AccessEvent,
+            Authorize = AuditService.AuthorizeAccessAsync,
+            AfterApplyAsync = AuditService.AccessAfterApplyAsync,
         },
         new()
         {

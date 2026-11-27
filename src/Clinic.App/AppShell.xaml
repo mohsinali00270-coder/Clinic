@@ -5,15 +5,71 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:Clinic.App.Views"
     Title="Clinic"
-    FlyoutBehavior="Flyout">
+    FlyoutBehavior="{OnIdiom Phone=Flyout, Tablet=Flyout, Desktop=Locked, Default=Flyout}"
+    FlyoutWidth="264"
+    FlyoutBackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource SurfaceDark}}">
 
+    <!-- Flyout: gradient identity header, icon menu with a clear selected state, sync footer -->
     <Shell.FlyoutHeader>
-        <VerticalStackLayout Padding="20,24,20,12" Spacing="2">
-            <Label x:Name="FlyoutUser" FontSize="17" FontFamily="OpenSansSemibold" />
-            <Label x:Name="FlyoutTenant" Style="{StaticResource Muted}" />
-            <Label x:Name="FlyoutSync" Style="{StaticResource Muted}" FontSize="12" Margin="0,6,0,0" />
-        </VerticalStackLayout>
+        <Border Style="{StaticResource HeroCard}" Margin="12,12,12,8" Padding="18,18" StrokeShape="RoundRectangle 18">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                <Border WidthRequest="46" HeightRequest="46" StrokeShape="RoundRectangle 23" StrokeThickness="0"
+                        BackgroundColor="#33FFFFFF" VerticalOptions="Center">
+                    <Label x:Name="FlyoutInitials" Style="{StaticResource OnHero}" FontFamily="OpenSansSemibold" FontSize="17"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                    <Label x:Name="FlyoutUser" Style="{StaticResource OnHero}" FontSize="16" FontFamily="OpenSansSemibold" LineBreakMode="TailTruncation" />
+                    <Label x:Name="FlyoutTenant" Style="{StaticResource OnHeroMuted}" FontSize="12.5" LineBreakMode="TailTruncation" MaxLines="2" />
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
     </Shell.FlyoutHeader>
+
+    <Shell.FlyoutFooter>
+        <Grid Padding="20,10,20,18" ColumnDefinitions="Auto,*" ColumnSpacing="10">
+            <Image Source="ic_sync.png" WidthRequest="18" HeightRequest="18" VerticalOptions="Center" />
+            <Label Grid.Column="1" x:Name="FlyoutSync" Style="{StaticResource Muted}" FontSize="12" VerticalOptions="Center" LineBreakMode="WordWrap" />
+        </Grid>
+    </Shell.FlyoutFooter>
+
+    <Shell.ItemTemplate>
+        <DataTemplate x:DataType="BaseShellItem">
+            <Border StrokeThickness="0" StrokeShape="RoundRectangle 12" Margin="10,1" Padding="14,0" HeightRequest="46"
+                    BackgroundColor="Transparent" SemanticProperties.Description="{Binding Title}">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="CommonStates">
+                            <VisualState x:Name="Normal">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="Transparent" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Selected">
+                                <VisualState.Setters>
+                                    <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Teal50}, Dark={StaticResource Tertiary}}" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                    <Image Source="{Binding FlyoutIcon}" WidthRequest="20" HeightRequest="20" VerticalOptions="Center" />
+                    <Label Grid.Column="1" Text="{Binding Title}" FontSize="14.5" VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </Shell.ItemTemplate>
+
+    <Shell.MenuItemTemplate>
+        <DataTemplate x:DataType="MenuItem">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14" Padding="14,0" Margin="10,6,10,1" HeightRequest="46">
+                <Image Source="{Binding IconImageSource}" WidthRequest="20" HeightRequest="20" VerticalOptions="Center" />
+                <Label Grid.Column="1" Text="{Binding Text}" FontSize="14.5" FontFamily="OpenSansSemibold" VerticalOptions="Center"
+                       TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
+            </Grid>
+        </DataTemplate>
+    </Shell.MenuItemTemplate>
 
     <ShellContent Route="login"
                   Title="Sign in"
@@ -27,50 +83,98 @@
                   Shell.FlyoutBehavior="Disabled"
                   ContentTemplate="{DataTemplate views:UnlockPage}" />
 
-    <FlyoutItem x:Name="HomeItem" Title="Home" Route="home">
+    <FlyoutItem x:Name="HomeItem" FlyoutIcon="ic_home.png" Title="Home" Route="home">
         <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
     </FlyoutItem>
 
-    <FlyoutItem x:Name="PatientsItem" Title="Patients" Route="patients">
+    <FlyoutItem x:Name="PatientsItem" FlyoutIcon="ic_patients.png" Title="Patients" Route="patients">
         <ShellContent ContentTemplate="{DataTemplate views:PatientsPage}" />
     </FlyoutItem>
 
-    <FlyoutItem x:Name="AppointmentsItem" Title="Appointments" Route="appointments">
+    <FlyoutItem x:Name="AppointmentsItem" FlyoutIcon="ic_calendar.png" Title="Appointments" Route="appointments">
         <ShellContent ContentTemplate="{DataTemplate views:AppointmentsPage}" />
     </FlyoutItem>
 
-    <FlyoutItem x:Name="QueueItem" Title="Queue" Route="queue">
+    <FlyoutItem x:Name="QueueItem" FlyoutIcon="ic_queue.png" Title="Queue" Route="queue">
         <ShellContent ContentTemplate="{DataTemplate views:QueuePage}" />
     </FlyoutItem>
 
-    <FlyoutItem x:Name="NotesItem" Title="Handover notes" Route="notes">
+    <FlyoutItem x:Name="FollowUpsItem" FlyoutIcon="ic_followup.png" Title="Follow-ups &amp; referrals" Route="follow-ups">
+        <ShellContent ContentTemplate="{DataTemplate views:FollowUpsPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="DayCareItem" FlyoutIcon="ic_bed.png" Title="Day care" Route="day-care">
+        <ShellContent ContentTemplate="{DataTemplate views:DayCarePage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="LabItem" FlyoutIcon="ic_lab.png" Title="Lab" Route="lab">
+        <ShellContent ContentTemplate="{DataTemplate views:LabWorkPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="CashItem" FlyoutIcon="ic_cash.png" Title="Cash closing" Route="cash-closing">
+        <ShellContent ContentTemplate="{DataTemplate views:CashClosingPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="ApprovalsItem" FlyoutIcon="ic_approve.png" Title="Approvals" Route="approvals">
+        <ShellContent ContentTemplate="{DataTemplate views:ApprovalsPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="ExpensesItem" FlyoutIcon="ic_receipt.png" Title="Expenses" Route="expenses">
+        <ShellContent ContentTemplate="{DataTemplate views:ExpensesPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="ComplaintsItem" FlyoutIcon="ic_chat.png" Title="Feedback &amp; complaints" Route="complaints">
+        <ShellContent ContentTemplate="{DataTemplate views:ComplaintsPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="ReportsItem" FlyoutIcon="ic_chart.png" Title="Dashboard &amp; reports" Route="reports">
+        <ShellContent ContentTemplate="{DataTemplate views:ReportsPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="StockItem" FlyoutIcon="ic_pill.png" Title="Pharmacy stock" Route="stock">
+        <ShellContent ContentTemplate="{DataTemplate views:StockPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="NotesItem" FlyoutIcon="ic_note.png" Title="Handover notes" Route="notes">
         <ShellContent ContentTemplate="{DataTemplate views:NotesPage}" />
     </FlyoutItem>
 
-    <FlyoutItem x:Name="SyncItem" Title="Sync Center" Route="sync-center">
+    <FlyoutItem x:Name="SyncItem" FlyoutIcon="ic_sync.png" Title="Sync Center" Route="sync-center">
         <ShellContent ContentTemplate="{DataTemplate views:SyncCenterPage}" />
     </FlyoutItem>
 
     <!-- Admin items: shown only when the cached permission set allows (FR-AUTH-01) -->
-    <FlyoutItem x:Name="BranchesItem" Title="Branches" Route="branches">
+    <FlyoutItem x:Name="BranchesItem" FlyoutIcon="ic_branch.png" Title="Branches" Route="branches">
         <ShellContent ContentTemplate="{DataTemplate views:BranchesPage}" />
     </FlyoutItem>
 
-    <FlyoutItem x:Name="UsersItem" Title="Users" Route="users">
+    <FlyoutItem x:Name="UsersItem" FlyoutIcon="ic_users.png" Title="Users" Route="users">
         <ShellContent ContentTemplate="{DataTemplate views:UsersPage}" />
     </FlyoutItem>
 
-    <FlyoutItem x:Name="DoctorsItem" Title="Doctors &amp; schedules" Route="doctors">
+    <FlyoutItem x:Name="DoctorsItem" FlyoutIcon="ic_doctor.png" Title="Doctors &amp; schedules" Route="doctors">
         <ShellContent ContentTemplate="{DataTemplate views:DoctorsPage}" />
     </FlyoutItem>
 
-    <FlyoutItem x:Name="FormsItem" Title="Forms" Route="forms">
+    <FlyoutItem x:Name="CareSetupItem" FlyoutIcon="ic_settings.png" Title="Care setup" Route="care-setup">
+        <ShellContent ContentTemplate="{DataTemplate views:CareSetupPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="FormsItem" FlyoutIcon="ic_form.png" Title="Forms" Route="forms">
         <ShellContent ContentTemplate="{DataTemplate views:FormsPage}" />
     </FlyoutItem>
 
-    <FlyoutItem x:Name="DevicesItem" Title="Devices" Route="devices">
+    <FlyoutItem x:Name="DevicesItem" FlyoutIcon="ic_device.png" Title="Devices" Route="devices">
         <ShellContent ContentTemplate="{DataTemplate views:DevicesPage}" />
     </FlyoutItem>
 
-    <MenuItem Text="Sign out" Clicked="OnSignOutClicked" />
+    <FlyoutItem x:Name="DuplicatesItem" FlyoutIcon="ic_merge.png" Title="Duplicate patients" Route="duplicates">
+        <ShellContent ContentTemplate="{DataTemplate views:DuplicatesPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem x:Name="AuditItem" FlyoutIcon="ic_shield.png" Title="Audit log" Route="audit">
+        <ShellContent ContentTemplate="{DataTemplate views:AuditPage}" />
+    </FlyoutItem>
+
+    <MenuItem Text="Sign out" IconImageSource="ic_logout.png" Clicked="OnSignOutClicked" />
 </Shell>

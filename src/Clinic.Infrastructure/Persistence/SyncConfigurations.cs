@@ -71,3 +71,18 @@ internal sealed class BranchNoteConfiguration : IEntityTypeConfiguration<BranchN
         b.HasIndex(x => new { x.TenantId, x.BranchId });
     }
 }
+
+internal sealed class SyncConflictConfiguration : IEntityTypeConfiguration<SyncConflict>
+{
+    public void Configure(EntityTypeBuilder<SyncConflict> b)
+    {
+        b.HasKey(x => x.Id);
+        b.Property(x => x.Id).ValueGeneratedNever();
+        b.Property(x => x.EntityType).HasMaxLength(60).IsRequired();
+        b.Property(x => x.Fields).HasMaxLength(1000);
+        b.Property(x => x.Status).HasMaxLength(20).IsRequired();
+        b.Property(x => x.Resolution).HasMaxLength(20);
+        b.HasIndex(x => new { x.TenantId, x.Status, x.CreatedAt });
+        b.HasIndex(x => new { x.TenantId, x.ChangeId });
+    }
+}

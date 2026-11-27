@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.DayCarePage"
+             x:DataType="vm:DayCareViewModel"
+             Title="Day care">
+    <RefreshView Command="{Binding LoadCommand}" IsRefreshing="{Binding IsBusy}">
+        <CollectionView ItemsSource="{Binding Beds}" Margin="20,12" SelectionMode="None">
+            <CollectionView.Header>
+                <VerticalStackLayout Spacing="4" Padding="0,0,0,8">
+                    <Label Text="Beds and chairs" Style="{StaticResource PageTitle}" />
+                    <Label Text="Admit from the patient's page. Tap an occupied bed to open the stay." Style="{StaticResource Muted}" />
+                    <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+                </VerticalStackLayout>
+            </CollectionView.Header>
+            <CollectionView.EmptyView>
+                <Label Text="No beds are set up for this branch (Care setup)." Style="{StaticResource Muted}" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:CareRow">
+                    <Border Style="{StaticResource Card}" Margin="0,0,0,8">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:DayCareViewModel}}, Path=OpenCommand}" CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout>
+                            <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" TextColor="{Binding TitleColor}" />
+                            <Label Text="{Binding Detail}" Style="{StaticResource Muted}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </RefreshView>
+</ContentPage>

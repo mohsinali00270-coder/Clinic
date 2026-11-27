@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.AdmissionPage"
+             x:DataType="vm:AdmissionViewModel"
+             Title="Day care">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Print summary" Command="{Binding PrintCommand}" />
+    </ContentPage.ToolbarItems>
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="12" MaximumWidthRequest="1000">
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="{Binding Title}" Style="{StaticResource PageTitle}" FontSize="20" />
+                    <Label Text="{Binding Subtitle}" Style="{StaticResource Muted}" />
+                    <Label Text="{Binding Warning}" TextColor="{StaticResource Danger}" IsVisible="{Binding Warning, Converter={StaticResource IsNotNullConverter}}" />
+                    <FlexLayout Wrap="Wrap" Margin="0,8,0,0" IsVisible="{Binding CanManage}">
+                        <Button Text="Transfer bed" Command="{Binding TransferCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Discharge" Command="{Binding DischargeCommand}" Margin="0,0,8,8" />
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </Border>
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+            <!-- FR-PRC-04 running room charges -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="{Binding ChargesTotal}" FontFamily="OpenSansSemibold" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Charges}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String"><Label Text="{Binding .}" Style="{StaticResource Muted}" FontSize="13" /></DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Medication chart -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Medication chart" FontFamily="OpenSansSemibold" FontSize="16" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="Order" Command="{Binding OrderCommand}" IsVisible="{Binding CanOrder}" Style="{StaticResource SecondaryButton}" />
+                    </Grid>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Chart}" Spacing="4">
+                        <BindableLayout.EmptyView><Label Text="No medicines ordered." Style="{StaticResource Muted}" /></BindableLayout.EmptyView>
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CareRow">
+                                <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                    <VerticalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AdmissionViewModel}}, Path=ChartActionCommand}" CommandParameter="{Binding .}" />
+                                    </VerticalStackLayout.GestureRecognizers>
+                                    <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                    <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Nursing notes -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Nursing notes" FontFamily="OpenSansSemibold" FontSize="16" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding CanChart}">
+                        <Editor Text="{Binding NewNote}" Placeholder="Observations, care given, handover…" AutoSize="TextChanges" MinimumHeightRequest="60" />
+                        <Button Grid.Column="1" Text="Add" Command="{Binding AddNoteCommand}" VerticalOptions="Start" />
+                    </Grid>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Notes}" Spacing="4">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CareRow">
+                                <VerticalStackLayout Padding="8,4">
+                                    <Label Text="{Binding Title}" />
+                                    <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

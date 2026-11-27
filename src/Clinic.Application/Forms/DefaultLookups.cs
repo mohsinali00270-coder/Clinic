@@ -51,6 +51,35 @@ public static class DefaultLookups
             new("patient_request", "Patient asked to change"), new("doctor_unavailable", "Doctor unavailable"),
             new("clinic_closed", "Clinic closed"), new("other", "Other"),
         ]),
+        new("case_outcomes", "Case outcomes", null,
+        [
+            new("recovered", "Recovered", "صحت یاب"), new("improved", "Improved", "بہتر"),
+            new("referred", "Referred", "ریفر کیا گیا"), new("lost_to_follow_up", "Lost to follow-up", "رابطہ منقطع"),
+            new("ongoing_elsewhere", "Ongoing elsewhere", "کہیں اور زیرِ علاج"), new("delivered", "Delivered (pregnancy)", "زچگی مکمل"),
+            new("deceased", "Deceased", "وفات"),
+        ]),
+        new("referrers", "Referring doctors and clinics", null, []),
+        new("payment_methods", "Payment methods", null,
+        [
+            new("cash", "Cash", "نقد"), new("card", "Debit / credit card", "کارڈ"), new("bank_transfer", "Bank transfer", "بینک ٹرانسفر"),
+            new("easypaisa", "Easypaisa"), new("jazzcash", "JazzCash"), new("wallet", "Patient wallet / advance", "ایڈوانس"),
+        ]),
+        new("expense_categories", "Expense categories", null,
+        [
+            new("rent", "Rent"), new("salaries", "Salaries"), new("utilities", "Electricity, gas, water"), new("supplies", "Medical supplies"),
+            new("lab_reagents", "Lab reagents"), new("maintenance", "Repairs and maintenance"), new("marketing", "Marketing"),
+            new("fuel", "Fuel / generator"), new("other", "Other"),
+        ]),
+        new("complaint_categories", "Complaint categories", null,
+        [
+            new("waiting", "Waiting time"), new("staff", "Staff behaviour"), new("billing", "Billing"), new("treatment", "Treatment"),
+            new("cleanliness", "Cleanliness"), new("other", "Other"),
+        ]),
+        new("discount_reasons", "Discount reasons", null,
+        [
+            new("staff", "Staff / family"), new("deserving", "Deserving patient (zakat)"), new("follow_up", "Free follow-up"),
+            new("doctor_approved", "Approved by doctor"), new("other", "Other"),
+        ]),
         new("cities", "Cities", null,
         [
             new("KHI", "Karachi", "کراچی"), new("LHE", "Lahore", "لاہور"), new("ISB", "Islamabad", "اسلام آباد"),

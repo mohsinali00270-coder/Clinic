@@ -29,10 +29,59 @@
             </Border>
             <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
 
+            <!-- Case, referral and procedures (§4.10–4.12) -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="{Binding CaseText}" FontFamily="OpenSansSemibold">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenCaseCommand}" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <FlexLayout Wrap="Wrap">
+                        <Button Text="Case…" Command="{Binding LinkCaseCommand}" IsVisible="{Binding CanUseCases}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Refer" Command="{Binding ReferCommand}" IsVisible="{Binding CanRefer}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Add procedure" Command="{Binding NewProcedureCommand}" IsVisible="{Binding CanDoProcedures}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                        <Button Text="Order tests" Command="{Binding OrderTestsCommand}" IsVisible="{Binding CanOrderLabs}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                    </FlexLayout>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding LabTests}" Spacing="4">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CareRow">
+                                <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                    <VerticalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:EncounterViewModel}}, Path=LabReportCommand}" CommandParameter="{Binding .}" />
+                                    </VerticalStackLayout.GestureRecognizers>
+                                    <Label Text="{Binding Title, StringFormat='🧪 {0}'}" />
+                                    <Label Text="{Binding Detail}" TextColor="{Binding TitleColor}" FontSize="12" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Procedures}" Spacing="4">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CareRow">
+                                <Grid ColumnDefinitions="*" Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:EncounterViewModel}}, Path=OpenProcedureCommand}" CommandParameter="{Binding .}" />
+                                    </Grid.GestureRecognizers>
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding Title}" TextColor="{Binding TitleColor}" />
+                                        <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
             <!-- Vitals -->
             <Border Style="{StaticResource Card}">
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Vitals" FontFamily="OpenSansSemibold" FontSize="16" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Vitals" FontFamily="OpenSansSemibold" FontSize="16" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="Scan report" Command="{Binding ScanVitalsCommand}" Style="{StaticResource SecondaryButton}"
+                                IsVisible="{Binding CanScan}" SemanticProperties.Description="Photograph a report and read its values" />
+                    </Grid>
                     <Label Text="{Binding LatestVitals, TargetNullValue='No vitals recorded yet.'}" Style="{StaticResource Muted}" />
                     <controls:DynamicFormView Model="{Binding VitalsModel}" IsVisible="{Binding VitalsModel, Converter={StaticResource IsNotNullConverter}}" />
                     <Button Text="Save vitals" Command="{Binding RecordVitalsCommand}" HorizontalOptions="Start" Style="{StaticResource SecondaryButton}"
@@ -115,6 +164,12 @@
                         </BindableLayout.ItemTemplate>
                     </VerticalStackLayout>
                     <Entry Text="{Binding DrugQuery}" Placeholder="Add medicine — type a name or generic" SemanticProperties.Description="Search medicines" />
+                    <HorizontalStackLayout Spacing="6">
+                        <Label Text="Read to patient:" VerticalOptions="Center" Style="{StaticResource Muted}" />
+                        <Button Text="🔊 English" Command="{Binding ReadAloudCommand}" CommandParameter="en" Style="{StaticResource SecondaryButton}" />
+                        <Button Text="🔊 اردو" Command="{Binding ReadAloudCommand}" CommandParameter="ur" Style="{StaticResource SecondaryButton}" />
+                        <Button Text="■" Command="{Binding StopReadingCommand}" Style="{StaticResource SecondaryButton}" SemanticProperties.Description="Stop reading" />
+                    </HorizontalStackLayout>
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding DrugResults}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="local:LocalDrug">

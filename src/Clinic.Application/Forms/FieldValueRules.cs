@@ -48,6 +48,10 @@ public static class DynamicParents
         [SyncEntityNames.Appointment] = typeof(Domain.Clinical.Appointment),
         [SyncEntityNames.Encounter] = typeof(Domain.Clinical.Encounter),
         [SyncEntityNames.Vitals] = typeof(Domain.Clinical.VitalsRecord),
+        [SyncEntityNames.Case] = typeof(Domain.Clinical.PatientCase),
+        [SyncEntityNames.Procedure] = typeof(Domain.Clinical.ProcedureRecord),
+        [SyncEntityNames.LabResult] = typeof(Domain.Clinical.LabResult),
+        [SyncEntityNames.Feedback] = typeof(Domain.Clinical.Feedback),
     };
 
     private static readonly MethodInfo FindMethod =

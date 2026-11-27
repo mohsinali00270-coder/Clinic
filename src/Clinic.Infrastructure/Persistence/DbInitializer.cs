@@ -90,7 +90,7 @@ public static class DbInitializer
                 {
                     var definition = DefaultRoles.All.FirstOrDefault(d => d.Name == role.Name);
                     if (definition is null) continue;
-                    foreach (var p in definition.Permissions.Where(p => DefaultRoles.VersionOf(p.Name) > tenant.PermissionCatalogVersion))
+                    foreach (var p in definition.Permissions.Where(p => DefaultRoles.VersionOf(role.Name, p.Name) > tenant.PermissionCatalogVersion))
                     {
                         if (role.Permissions.All(x => x.Permission != p.Name))
                             role.Permissions.Add(new RolePermission { RoleId = role.Id, Permission = p.Name, Scope = p.Scope });
@@ -104,6 +104,10 @@ public static class DbInitializer
             await Application.Forms.LookupService.EnsureDefaultsAsync(db, ct);
             await Application.Clinical.SchedulingSetupService.EnsureDefaultsAsync(db, ct);
             await Application.Clinical.ClinicalMasterService.EnsureDefaultsAsync(db, ct);
+            await Application.Clinical.CareSetupService.EnsureDefaultsAsync(db, ct);
+            await Application.Clinical.LabBillingService.EnsureDefaultsAsync(db, ct);
+            await Application.Clinical.AccountsService.EnsureDefaultsAsync(db, ct);
+            await Application.Clinical.InventoryReportService.EnsureDefaultsAsync(db, ct);
 
             foreach (var descriptor in SyncRegistry.All)
             {

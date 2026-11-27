@@ -75,6 +75,10 @@ public sealed partial class SyncCenterViewModel : ViewModelBase, IDisposable
     }
 
     [RelayCommand]
+    private Task CompareAsync(OutboxRow row) =>
+        Ui.GoToAsync(Routes.Conflict, new Dictionary<string, object> { ["seq"] = row.Entry.Seq });
+
+    [RelayCommand]
     private async Task DiscardAsync(OutboxRow row)
     {
         var message = row.Entry.ServerData is null

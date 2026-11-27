@@ -21,10 +21,11 @@ public sealed class ClinicApiFactory : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("Testing");
         builder.UseSetting("Database:Provider", "Sqlite");
-        builder.UseSetting("ConnectionStrings:Clinic", $"Data Source={_dbPath};Pooling=False");
+        builder.UseSetting("ConnectionStrings:Clinic", $"Data Source={_dbPath};Pooling=True");
         builder.UseSetting("Jwt:SigningKey", "test-signing-key-0123456789abcdef-0123456789");
         builder.UseSetting("RateLimiting:AuthPermitsPerMinute", "10000");
         builder.UseSetting("Seed:Enabled", "true");
+        builder.UseSetting("Messaging:PollSeconds", "1");
         builder.UseSetting("Seed:SuperAdminUserName", "superadmin");
         builder.UseSetting("Seed:SuperAdminPassword", SuperAdminPassword);
         builder.UseSetting("Seed:DemoTenant", "true");
@@ -54,6 +55,7 @@ public sealed class ClinicApiFactory : WebApplicationFactory<Program>
     public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
+        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
         try { File.Delete(_dbPath); } catch (IOException) { }
     }
 }

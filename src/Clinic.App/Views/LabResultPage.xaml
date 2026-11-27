@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:controls="clr-namespace:Clinic.App.Controls"
+             x:Class="Clinic.App.Views.LabResultPage"
+             x:DataType="vm:LabResultViewModel"
+             Title="Lab test">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Report" Command="{Binding ReportCommand}" />
+        <ToolbarItem Text="Attach outside report" Command="{Binding AttachCommand}" />
+    </ContentPage.ToolbarItems>
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="12" MaximumWidthRequest="900">
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="{Binding Title}" Style="{StaticResource PageTitle}" FontSize="20" />
+                        <Border Grid.Column="1" Style="{StaticResource Badge}" VerticalOptions="Start">
+                            <Label Text="{Binding StatusText}" FontSize="12" />
+                        </Border>
+                    </Grid>
+                    <Label Text="{Binding Subtitle}" Style="{StaticResource Muted}" />
+                </VerticalStackLayout>
+            </Border>
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+            <!-- Sample collection -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding CanCollect}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Sample number (blank = generate)" Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding SampleNo}" Placeholder="e.g. barcode on the tube" />
+                    <Button Text="Sample collected" Command="{Binding CollectCommand}" HorizontalOptions="Start" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Results (the test's dynamic form: ranges and flags by gender/age) -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding ResultModel, Converter={StaticResource IsNotNullConverter}}">
+                <VerticalStackLayout Spacing="6">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Results" FontFamily="OpenSansSemibold" FontSize="16" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="Scan printout" Command="{Binding ScanCommand}" IsVisible="{Binding CanScan}" Style="{StaticResource SecondaryButton}" />
+                    </Grid>
+                    <controls:DynamicFormView Model="{Binding ResultModel}" />
+                    <Label Text="Comment" Style="{StaticResource FieldLabel}" />
+                    <Editor Text="{Binding Comment}" AutoSize="TextChanges" MinimumHeightRequest="50" IsEnabled="{Binding CanEnter}" />
+                    <Button Text="Save results" Command="{Binding SaveResultsCommand}" IsVisible="{Binding CanEnter}" HorizontalOptions="Start" Style="{StaticResource SecondaryButton}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <FlexLayout Wrap="Wrap">
+                <Button Text="Verify and release" Command="{Binding VerifyCommand}" IsVisible="{Binding CanVerify}" Margin="0,0,10,10" />
+                <Button Text="Cancel test" Command="{Binding CancelTestCommand}" IsVisible="{Binding CanCancel}" Style="{StaticResource DangerButton}" Margin="0,0,10,10" />
+            </FlexLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

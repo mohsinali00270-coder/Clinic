@@ -31,6 +31,8 @@ public static class ClinicalSyncRules
     public static async Task<string?> AuthorizePatientAsync(SyncWriteContext ctx)
     {
         var p = (Patient)ctx.Entity;
+        if (p.MergedIntoId is { } survivor)
+            return $"This patient was merged into another record ({survivor}). Sync to get the merged patient and make the change there.";
         var permission = ctx.IsNew ? Permissions.Patients.Create : Permissions.Patients.Edit;
         if (ctx.User.GetScope(permission) is not { } scope) return $"You do not have the {permission} permission.";
 

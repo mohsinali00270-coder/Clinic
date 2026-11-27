@@ -4,88 +4,249 @@
              xmlns:vm="clr-namespace:Clinic.App.ViewModels"
              x:Class="Clinic.App.Views.HomePage"
              x:DataType="vm:HomeViewModel"
-             Title="Home">
+             Title="Dashboard">
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="16" MaximumWidthRequest="760">
+        <VerticalStackLayout x:Name="Root" Padding="16,16,16,28" Spacing="18" MaximumWidthRequest="1240">
 
-            <VerticalStackLayout Spacing="2">
-                <Label Text="{Binding Greeting}" Style="{StaticResource PageTitle}" />
-                <Label Text="{Binding TenantName}" FontSize="16" />
-            </VerticalStackLayout>
+            <!-- ===== Hero: greeting, clinic, date and live sync state (FR-OFF-20) ===== -->
+            <Border Style="{StaticResource HeroCard}">
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="16" RowSpacing="14">
+                    <VerticalStackLayout Spacing="3">
+                        <Label Text="{Binding TodayText}" Style="{StaticResource OnHeroMuted}" />
+                        <Label Text="{Binding Greeting}" Style="{StaticResource OnHero}" FontSize="25" FontFamily="OpenSansSemibold"
+                               CharacterSpacing="-0.3" SemanticProperties.HeadingLevel="Level1" />
+                        <Label Style="{StaticResource OnHeroMuted}" FontSize="14">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding TenantName}" />
+                                    <Span Text="  ·  " />
+                                    <Span Text="{Binding BranchName}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </VerticalStackLayout>
+                    <Border Grid.Column="1" WidthRequest="54" HeightRequest="54" StrokeShape="RoundRectangle 27" StrokeThickness="0"
+                            BackgroundColor="#29FFFFFF" VerticalOptions="Start">
+                        <Label Text="{Binding Initials}" Style="{StaticResource OnHero}" FontSize="19" FontFamily="OpenSansSemibold"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
 
-            <!-- FR-OFF-20 / FR-OFF-12: connectivity, sync state and queue always visible -->
-            <Border Style="{StaticResource Card}">
-                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
-                    <HorizontalStackLayout Spacing="8">
-                        <Ellipse WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Fill="{StaticResource Success}" IsVisible="{Binding IsOnline}" />
-                        <Ellipse WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Fill="{StaticResource Warning}"
-                                 IsVisible="{Binding IsOnline, Converter={StaticResource InvertedBoolConverter}}" />
-                        <Label Text="{Binding Sync.StatusText}" VerticalOptions="Center" LineBreakMode="WordWrap" />
-                    </HorizontalStackLayout>
-                    <ActivityIndicator Grid.Column="1" IsRunning="{Binding Sync.IsSyncing}" IsVisible="{Binding Sync.IsSyncing}"
-                                       HeightRequest="20" WidthRequest="20" />
-                    <HorizontalStackLayout Grid.Row="1" Grid.ColumnSpan="2" Spacing="10">
-                        <Button Text="Sync now" Command="{Binding SyncNowCommand}" Style="{StaticResource SecondaryButton}" />
+                    <!-- Sync pill -->
+                    <FlexLayout Grid.Row="1" Grid.ColumnSpan="2" Wrap="Wrap" AlignItems="Center">
+                        <Border StrokeShape="RoundRectangle 999" StrokeThickness="0" BackgroundColor="#24FFFFFF" Padding="12,7" Margin="0,0,10,8">
+                            <HorizontalStackLayout Spacing="8">
+                                <Ellipse WidthRequest="9" HeightRequest="9" VerticalOptions="Center" Fill="#4ADE80" IsVisible="{Binding IsOnline}" />
+                                <Ellipse WidthRequest="9" HeightRequest="9" VerticalOptions="Center" Fill="#FBBF24"
+                                         IsVisible="{Binding IsOnline, Converter={StaticResource InvertedBoolConverter}}" />
+                                <Label Text="{Binding Sync.StatusText}" Style="{StaticResource OnHero}" FontSize="13" VerticalOptions="Center"
+                                       LineBreakMode="TailTruncation" MaximumWidthRequest="420" />
+                                <ActivityIndicator IsRunning="{Binding Sync.IsSyncing}" IsVisible="{Binding Sync.IsSyncing}" Color="White"
+                                                   HeightRequest="14" WidthRequest="14" />
+                            </HorizontalStackLayout>
+                        </Border>
+                        <Button Text="Sync now" Command="{Binding SyncNowCommand}" BackgroundColor="White" TextColor="{StaticResource Navy800}"
+                                Padding="16,6" MinimumHeightRequest="36" CornerRadius="18" FontSize="13" Margin="0,0,8,8" />
                         <Button Text="{Binding Sync.Outstanding, StringFormat='Sync Center ({0})'}" Command="{Binding OpenSyncCenterCommand}"
-                                Style="{StaticResource SecondaryButton}" />
-                    </HorizontalStackLayout>
+                                BackgroundColor="#24FFFFFF" TextColor="White" Padding="16,6" MinimumHeightRequest="36" CornerRadius="18" FontSize="13"
+                                Margin="0,0,8,8" />
+                    </FlexLayout>
                 </Grid>
             </Border>
 
-            <Border Style="{StaticResource Card}" IsVisible="{Binding NeedsPin}">
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                    <VerticalStackLayout>
+            <!-- Offline PIN prompt -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding NeedsPin}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource WarningSoft}, Dark={StaticResource WarningSoftDark}}" Stroke="Transparent">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                    <Image Source="ic_alert.png" WidthRequest="24" HeightRequest="24" VerticalOptions="Center" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="2">
                         <Label Text="Set up an offline PIN" FontFamily="OpenSansSemibold" />
                         <Label Text="Unlock this device without internet. Without a PIN you need your password every time the app starts."
                                Style="{StaticResource Muted}" />
                     </VerticalStackLayout>
-                    <Button Grid.Column="1" Text="Set PIN" Command="{Binding SetupPinCommand}" VerticalOptions="Center" />
+                    <Button Grid.Column="2" Text="Set PIN" Command="{Binding SetupPinCommand}" VerticalOptions="Center" />
                 </Grid>
             </Border>
 
-            <Border Style="{StaticResource Card}">
-                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="16" RowSpacing="8">
-                    <Label Text="Roles" Style="{StaticResource FieldLabel}" Margin="0" />
-                    <Label Grid.Column="1" Text="{Binding Roles}" />
-                    <Label Grid.Row="1" Text="Branches" Style="{StaticResource FieldLabel}" Margin="0" />
-                    <Label Grid.Row="1" Grid.Column="1" Text="{Binding Branches}" />
-                    <Label Grid.Row="2" Text="Permissions" Style="{StaticResource FieldLabel}" Margin="0" />
-                    <Label Grid.Row="2" Grid.Column="1" Text="{Binding PermissionCount, StringFormat='{0} granted'}" />
-                    <Label Grid.Row="3" Text="Device" Style="{StaticResource FieldLabel}" Margin="0" />
-                    <Label Grid.Row="3" Grid.Column="1" Text="{Binding DeviceInfoText}" />
-                </Grid>
-            </Border>
-
-            <Label Text="Go to" Style="{StaticResource FieldLabel}" FontSize="15" />
-            <FlexLayout Wrap="Wrap" JustifyContent="Start">
-                <Button Text="Patients" Command="{Binding OpenPatientsCommand}" IsVisible="{Binding CanPatients}"
-                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
-                <Button Text="Appointments" Command="{Binding OpenAppointmentsCommand}" IsVisible="{Binding CanAppointments}"
-                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
-                <Button Text="Queue" Command="{Binding OpenQueueCommand}" IsVisible="{Binding CanQueue}"
-                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
-                <Button Text="Doctors" Command="{Binding OpenDoctorsCommand}" IsVisible="{Binding CanDoctors}"
-                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
-                <Button Text="Handover notes" Command="{Binding OpenNotesCommand}" IsVisible="{Binding CanNotes}"
-                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
-                <Button Text="Branches" Command="{Binding OpenBranchesCommand}" IsVisible="{Binding CanBranches}"
-                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
-                <Button Text="Users" Command="{Binding OpenUsersCommand}" IsVisible="{Binding CanUsers}"
-                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
-                <Button Text="Forms" Command="{Binding OpenFormsCommand}" IsVisible="{Binding CanForms}"
-                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
-                <Button Text="Devices" Command="{Binding OpenDevicesCommand}" IsVisible="{Binding CanDevices}"
-                        Margin="0,0,10,10" MinimumWidthRequest="150" MinimumHeightRequest="44" />
+            <!-- ===== Statistics ===== -->
+            <FlexLayout x:Name="StatsLayout" Wrap="Wrap" JustifyContent="Start" AlignItems="Start" AlignContent="Start" BindableLayout.ItemsSource="{Binding Stats}" Margin="-6,0">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:StatTile">
+                        <Border Style="{StaticResource StatCard}" Margin="6" WidthRequest="{Binding Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, Path=TileWidth}">
+                            <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Text="{Binding Title}" Style="{StaticResource Muted}" FontFamily="OpenSansSemibold" VerticalOptions="Center"
+                                           LineBreakMode="WordWrap" MaxLines="2" />
+                                    <Border Grid.Column="1" Style="{StaticResource IconTile}" WidthRequest="34" HeightRequest="34" Padding="8">
+                                        <Image Source="{Binding Icon}" />
+                                    </Border>
+                                </Grid>
+                                <Label Grid.Row="1" Text="{Binding Value}" Style="{StaticResource StatValue}" Margin="0,6,0,0"
+                                       LineBreakMode="TailTruncation" />
+                                <Label Grid.Row="2" Text="{Binding Caption}" Style="{StaticResource Muted}" FontSize="12" LineBreakMode="WordWrap" MaxLines="2" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
             </FlexLayout>
+
+            <!-- ===== Panels (two columns on wide screens) ===== -->
+            <FlexLayout x:Name="PanelsLayout" Wrap="Wrap" JustifyContent="Start" AlignItems="Start" AlignContent="Start" Margin="-8,0">
+
+                <!-- Today's agenda -->
+                <Border Style="{StaticResource ElevatedCard}" Margin="8" WidthRequest="{Binding PanelWidth}" IsVisible="{Binding ShowQueue}">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout Spacing="1">
+                                <Label Text="Today's appointments" Style="{StaticResource SectionTitle}" />
+                                <Label Text="Next in line" Style="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1" Text="View all" Style="{StaticResource LinkButton}" Command="{Binding OpenAppointmentsCommand}"
+                                    VerticalOptions="Center" />
+                        </Grid>
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Agenda}" Spacing="0">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AgendaRow">
+                                    <VerticalStackLayout>
+                                        <Grid ColumnDefinitions="78,*,Auto" ColumnSpacing="12" Padding="0,10">
+                                            <Label Text="{Binding Time}" FontFamily="OpenSansSemibold" FontSize="13" VerticalOptions="Center"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Accent}, Dark={StaticResource AccentDark}}" />
+                                            <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                                                <Label Text="{Binding Patient}" FontFamily="OpenSansSemibold" LineBreakMode="TailTruncation" />
+                                                <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" LineBreakMode="TailTruncation" />
+                                            </VerticalStackLayout>
+                                            <Border Grid.Column="2" Style="{StaticResource Badge}" BackgroundColor="{Binding ChipBackground}">
+                                                <Label Text="{Binding Status}" Style="{StaticResource ChipText}" TextColor="{Binding ChipText}" />
+                                            </Border>
+                                        </Grid>
+                                        <BoxView Style="{StaticResource Divider}" />
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                        <Label Text="No more appointments today." Style="{StaticResource Muted}" HorizontalOptions="Center" Margin="0,8"
+                               IsVisible="{Binding HasAgenda, Converter={StaticResource InvertedBoolConverter}}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Queue by stage -->
+                <Border Style="{StaticResource ElevatedCard}" Margin="8" WidthRequest="{Binding PanelWidth}" IsVisible="{Binding ShowQueue}">
+                    <VerticalStackLayout Spacing="14">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout Spacing="1">
+                                <Label Text="Waiting room" Style="{StaticResource SectionTitle}" />
+                                <Label Text="{Binding QueueTotalText}" Style="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1" Text="Open queue" Style="{StaticResource LinkButton}" Command="{Binding OpenQueueCommand}"
+                                    IsVisible="{Binding CanQueue}" VerticalOptions="Center" />
+                        </Grid>
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding QueueStages}" Spacing="12">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:QueueStage">
+                                    <VerticalStackLayout Spacing="5">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                                            <Ellipse WidthRequest="9" HeightRequest="9" Fill="{Binding Color}" VerticalOptions="Center" />
+                                            <Label Grid.Column="1" Text="{Binding Name}" FontSize="13.5" />
+                                            <Label Grid.Column="2" Text="{Binding Count}" FontFamily="OpenSansSemibold" />
+                                        </Grid>
+                                        <ProgressBar Progress="{Binding Share}" ProgressColor="{Binding Color}" HeightRequest="6" />
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Revenue, last 7 days -->
+                <Border Style="{StaticResource ElevatedCard}" Margin="8" WidthRequest="{Binding PanelWidth}" IsVisible="{Binding ShowMoney}">
+                    <VerticalStackLayout Spacing="14">
+                        <VerticalStackLayout Spacing="1">
+                            <Label Text="Revenue" Style="{StaticResource SectionTitle}" />
+                            <Label Text="{Binding RevenueWeekText}" Style="{StaticResource Muted}" />
+                        </VerticalStackLayout>
+                        <Grid HeightRequest="150">
+                            <HorizontalStackLayout BindableLayout.ItemsSource="{Binding RevenueBars}" Spacing="0" HorizontalOptions="Fill">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:RevenueBar">
+                                        <Grid RowDefinitions="*,Auto,Auto" WidthRequest="{Binding Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, Path=BarSlotWidth}"
+                                              RowSpacing="4" SemanticProperties.Description="{Binding Amount}">
+                                            <Border Grid.Row="0" VerticalOptions="End" HorizontalOptions="Center" WidthRequest="22"
+                                                    HeightRequest="{Binding Height}" StrokeThickness="0" StrokeShape="RoundRectangle 6,6,2,2">
+                                                <Border.Triggers>
+                                                    <DataTrigger TargetType="Border" Binding="{Binding IsToday}" Value="True">
+                                                        <Setter Property="Background" Value="{StaticResource HeroGradient}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Border" Binding="{Binding IsToday}" Value="False">
+                                                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Teal300}, Dark={StaticResource Teal700}}" />
+                                                    </DataTrigger>
+                                                </Border.Triggers>
+                                            </Border>
+                                            <Label Grid.Row="1" Text="{Binding Amount}" FontSize="10.5" HorizontalOptions="Center" Style="{StaticResource Muted}" />
+                                            <Label Grid.Row="2" Text="{Binding Day}" FontSize="11.5" HorizontalOptions="Center" FontFamily="OpenSansSemibold" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </HorizontalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Account -->
+                <Border Style="{StaticResource ElevatedCard}" Margin="8" WidthRequest="{Binding PanelWidth}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Your account" Style="{StaticResource SectionTitle}" />
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="16" RowSpacing="8">
+                            <Label Text="Roles" Style="{StaticResource FieldLabel}" Margin="0" />
+                            <Label Grid.Column="1" Text="{Binding Roles}" />
+                            <Label Grid.Row="1" Text="Branches" Style="{StaticResource FieldLabel}" Margin="0" />
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding Branches}" />
+                            <Label Grid.Row="2" Text="Permissions" Style="{StaticResource FieldLabel}" Margin="0" />
+                            <Label Grid.Row="2" Grid.Column="1" Text="{Binding PermissionCount, StringFormat='{0} granted'}" />
+                            <Label Grid.Row="3" Text="Device" Style="{StaticResource FieldLabel}" Margin="0" />
+                            <Label Grid.Row="3" Grid.Column="1" Text="{Binding DeviceInfoText}" />
+                        </Grid>
+                        <FlexLayout Wrap="Wrap" Margin="0,6,0,0">
+                            <Button Text="{Binding ThemeText}" Command="{Binding ToggleThemeCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8"
+                                    SemanticProperties.Hint="Switches between system, light and dark appearance" />
+                            <Button Text="Change password" Command="{Binding ChangePasswordCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8" />
+                            <Button Text="Change offline PIN" Command="{Binding SetupPinCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,8"
+                                    IsVisible="{Binding NeedsPin, Converter={StaticResource InvertedBoolConverter}}" />
+                            <Button Text="Sign out" Command="{Binding LogoutCommand}" Style="{StaticResource DangerButton}" Margin="0,0,8,8" />
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </Border>
+            </FlexLayout>
+
+            <!-- ===== Quick actions ===== -->
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Quick actions" Style="{StaticResource SectionTitle}" />
+                <FlexLayout x:Name="ActionsLayout" Wrap="Wrap" AlignItems="Start" AlignContent="Start" BindableLayout.ItemsSource="{Binding QuickActions}" Margin="-6,0">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:QuickAction">
+                            <Border Style="{StaticResource Card}" Margin="6" Padding="14"
+                                    WidthRequest="{Binding Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, Path=ActionWidth}"
+                                    SemanticProperties.Description="{Binding Title}">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, Path=OpenQuickActionCommand}"
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                    <Border Style="{StaticResource IconTile}">
+                                        <Image Source="{Binding Icon}" />
+                                    </Border>
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                                        <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding Caption}" Style="{StaticResource Muted}" FontSize="12" LineBreakMode="TailTruncation" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </FlexLayout>
+            </VerticalStackLayout>
 
             <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
-
-            <FlexLayout Wrap="Wrap">
-                <Button Text="Change password" Command="{Binding ChangePasswordCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,10,10" />
-                <Button Text="Change offline PIN" Command="{Binding SetupPinCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,10,10"
-                        IsVisible="{Binding NeedsPin, Converter={StaticResource InvertedBoolConverter}}" />
-                <Button Text="Sign out" Command="{Binding LogoutCommand}" Style="{StaticResource DangerButton}" Margin="0,0,10,10" />
-            </FlexLayout>
+            <Label Text="Figures come from this device and update after every sync." Style="{StaticResource Muted}" FontSize="12"
+                   HorizontalOptions="Center" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

@@ -105,6 +105,10 @@ public static class TenantProvisioner
         await Forms.LookupService.EnsureDefaultsAsync(db, ct);
         await Clinical.SchedulingSetupService.EnsureDefaultsAsync(db, ct);
         await Clinical.ClinicalMasterService.EnsureDefaultsAsync(db, ct);
+        await Clinical.CareSetupService.EnsureDefaultsAsync(db, ct);
+        await Clinical.LabBillingService.EnsureDefaultsAsync(db, ct);
+        await Clinical.AccountsService.EnsureDefaultsAsync(db, ct);
+        await Clinical.InventoryReportService.EnsureDefaultsAsync(db, ct);
         return tenant;
     }
 }

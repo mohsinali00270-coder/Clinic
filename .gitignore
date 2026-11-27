@@ -8,3 +8,6 @@ TestResults/
 *.db-shm
 *.db-wal
 appsettings.*.local.json
+
+# Deployment secrets
+.env

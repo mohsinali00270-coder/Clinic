@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             xmlns:controls="clr-namespace:Clinic.App.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="Clinic.App.Views.ProcedurePage"
+             x:DataType="vm:ProcedureViewModel"
+             Title="Procedure">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,12" Spacing="12" MaximumWidthRequest="1000">
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="4">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="{Binding Title}" Style="{StaticResource PageTitle}" FontSize="20" />
+                        <Border Grid.Column="1" Style="{StaticResource Badge}" VerticalOptions="Start">
+                            <Label Text="{Binding StatusText}" FontSize="12" />
+                        </Border>
+                    </Grid>
+                    <Label Text="{Binding Subtitle}" Style="{StaticResource Muted}" />
+                    <Label Text="Consumables" Style="{StaticResource FieldLabel}" Margin="0,6,0,0" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Consumables}">
+                        <BindableLayout.EmptyView><Label Text="None listed." Style="{StaticResource Muted}" /></BindableLayout.EmptyView>
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String"><Label Text="{Binding .}" FontSize="13" /></DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+            <!-- Consent (FR-PRC-02) -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding NeedsConsent}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Consent" FontFamily="OpenSansSemibold" FontSize="16" />
+                    <Label Text="{Binding ConsentSummary}" TextColor="{StaticResource Success}" IsVisible="{Binding HasConsent}" />
+                    <VerticalStackLayout Spacing="6" IsVisible="{Binding ShowConsentPad}">
+                        <Label Text="{Binding ConsentText}" />
+                        <Label Text="{Binding ConsentTextUr}" FlowDirection="RightToLeft" HorizontalTextAlignment="End" FontSize="16" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <VerticalStackLayout>
+                                <Label Text="Signed by" Style="{StaticResource FieldLabel}" />
+                                <Entry Text="{Binding SignerName}" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1">
+                                <Label Text="Relation to patient" Style="{StaticResource FieldLabel}" />
+                                <Picker ItemsSource="{Binding Relations}" SelectedIndex="{Binding RelationIndex}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                        <Label Text="Witness (optional)" Style="{StaticResource FieldLabel}" />
+                        <Entry Text="{Binding Witness}" />
+                        <Label Text="Signature" Style="{StaticResource FieldLabel}" />
+                        <Border Stroke="{StaticResource Gray300}" StrokeThickness="1" HeightRequest="160">
+                            <toolkit:DrawingView x:Name="SignaturePad" LineColor="Black" LineWidth="3" IsMultiLineModeEnabled="True"
+                                                 BackgroundColor="White" HeightRequest="160" SemanticProperties.Description="Signature pad" />
+                        </Border>
+                        <HorizontalStackLayout Spacing="8">
+                            <Button Text="Clear" Clicked="OnClearSignature" Style="{StaticResource SecondaryButton}" />
+                            <Button Text="Save consent" Command="{Binding SignConsentCommand}" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                    <Button Text="Print consent form" Command="{Binding PrintConsentCommand}" Style="{StaticResource SecondaryButton}" HorizontalOptions="Start" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Procedure note (dynamic form per procedure, FR-PRC-01) -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding NoteModel, Converter={StaticResource IsNotNullConverter}}">
+                <VerticalStackLayout Spacing="6">
+                    <controls:DynamicFormView Model="{Binding NoteModel}" />
+                    <Button Text="Save note" Command="{Binding SaveNoteCommand}" IsVisible="{Binding IsActive}" HorizontalOptions="Start" Style="{StaticResource SecondaryButton}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <FlexLayout Wrap="Wrap" IsVisible="{Binding IsActive}">
+                <Button Text="Start" Command="{Binding StartCommand}" IsVisible="{Binding IsPlanned}" Margin="0,0,10,10" />
+                <Button Text="Complete" Command="{Binding CompleteCommand}" Margin="0,0,10,10" />
+                <Button Text="Cancel procedure" Command="{Binding CancelProcedureCommand}" Style="{StaticResource DangerButton}" Margin="0,0,10,10" />
+            </FlexLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

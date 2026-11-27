@@ -135,8 +135,8 @@ public sealed class DynamicFormView : ContentView
 /// <summary>Label + input + help + error for one field (or one repeating-group cell).</summary>
 internal abstract class FieldEditor
 {
-    private static readonly Color CriticalColor = Color.FromArgb("#B91C1C");
-    private static readonly Color WarningColor = Color.FromArgb("#B45309");
+    private static Color CriticalColor => Services.ThemeColors.Get("Danger");
+    private static Color WarningColor => Services.ThemeColors.Get("Warning");
 
     protected FieldEditor(DynamicFormView owner, DynamicFormModel model, FieldDefinition field, string path, string? group, int? row)
     {
@@ -197,7 +197,7 @@ internal abstract class FieldEditor
         if (Field.Type != FieldType.Label) stack.Children.Add(_label);
         stack.Children.Add(_input);
         if (Field.Help is { } help && Field.Type != FieldType.Label)
-            stack.Children.Add(new Label { Text = help.Get(lang), FontSize = 12, TextColor = Colors.Gray });
+            stack.Children.Add(new Label { Text = help.Get(lang), FontSize = 12, TextColor = Services.ThemeColors.Get("TextSecondary") });
         stack.Children.Add(_abnormal);
         stack.Children.Add(_error);
         SemanticProperties.SetDescription(_input, Field.Label.Get(lang));
@@ -283,7 +283,24 @@ internal sealed class TextEditor(DynamicFormView o, DynamicFormModel m, FieldDef
         _box.Placeholder = Field.Placeholder is { } ph ? L(ph) : Field.Mask?.Replace('#', '0');
         if (Field.MaxLength is { } max) _box.MaxLength = max;
         _box.TextChanged += (_, e) => Commit(string.IsNullOrEmpty(e.NewTextValue) ? null : JsonValue.Create(e.NewTextValue));
-        return _box;
+        if (Field.Type is not (FieldType.Text or FieldType.MultilineText or FieldType.RichNote) || Services.DictationService.Current is not { } dictation)
+            return _box;
+
+        // FR-AI-20: dictate into the field (on-device speech recognition); the text is appended and stays editable.
+        var mic = new Button { Text = "🎤", Padding = new Thickness(8, 0), VerticalOptions = LayoutOptions.Start, BackgroundColor = Colors.Transparent, TextColor = Services.ThemeColors.Get("TextSecondary") };
+        SemanticProperties.SetDescription(mic, $"Dictate {L(Field.Label)}");
+        mic.Clicked += async (_, _) =>
+        {
+            mic.Text = "⏺";
+            var spoken = await dictation.ListenAsync(Model.Language);
+            mic.Text = "🎤";
+            if (string.IsNullOrWhiteSpace(spoken) || !_box.IsEnabled) return;
+            _box.Text = string.IsNullOrWhiteSpace(_box.Text) ? spoken.Trim() : $"{_box.Text.TrimEnd()} {spoken.Trim()}";
+        };
+        var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)] };
+        grid.Add(_box, 0);
+        grid.Add(mic, 1);
+        return grid;
     }
 
     protected override void ShowValue(JsonNode? value)
@@ -313,7 +330,7 @@ internal sealed class NumberEditor(DynamicFormView o, DynamicFormModel m, FieldD
 
         var grid = new Grid { ColumnDefinitions = [new(GridLength.Star), new(GridLength.Auto)], ColumnSpacing = 6 };
         grid.Children.Add(_entry);
-        var unitLabel = new Label { Text = unit, VerticalOptions = LayoutOptions.Center, TextColor = Colors.Gray };
+        var unitLabel = new Label { Text = unit, VerticalOptions = LayoutOptions.Center, TextColor = Services.ThemeColors.Get("TextSecondary") };
         Grid.SetColumn(unitLabel, 1);
         grid.Children.Add(unitLabel);
         return grid;
@@ -345,7 +362,7 @@ internal sealed class DateEditor(DynamicFormView o, DynamicFormModel m, FieldDef
         _date = new DatePicker { Format = "dd MMM yyyy" };
         _time = new TimePicker { Format = "HH:mm", IsVisible = withTime };
         _set = new Button { Text = withTime ? "Set date & time" : "Set date", FontSize = 13, Padding = new Thickness(12, 4) };
-        _clear = new Button { Text = "✕", FontSize = 13, Padding = new Thickness(10, 4), BackgroundColor = Colors.Transparent, TextColor = Colors.Gray };
+        _clear = new Button { Text = "✕", FontSize = 13, Padding = new Thickness(10, 4), BackgroundColor = Colors.Transparent, TextColor = Services.ThemeColors.Get("TextSecondary") };
         SemanticProperties.SetDescription(_clear, "Clear");
 
         _set.Clicked += (_, _) => Commit(Stamp(DateTime.Today, withTime ? DateTime.Now.TimeOfDay : TimeSpan.Zero));
@@ -390,7 +407,7 @@ internal sealed class TimeEditor(DynamicFormView o, DynamicFormModel m, FieldDef
     {
         _time = new TimePicker { Format = "HH:mm" };
         _set = new Button { Text = "Set time", FontSize = 13, Padding = new Thickness(12, 4) };
-        _clear = new Button { Text = "✕", FontSize = 13, Padding = new Thickness(10, 4), BackgroundColor = Colors.Transparent, TextColor = Colors.Gray };
+        _clear = new Button { Text = "✕", FontSize = 13, Padding = new Thickness(10, 4), BackgroundColor = Colors.Transparent, TextColor = Services.ThemeColors.Get("TextSecondary") };
         _set.Clicked += (_, _) => Commit(JsonValue.Create(DateTime.Now.ToString("HH:mm", CultureInfo.InvariantCulture)));
         _clear.Clicked += (_, _) => Commit(null);
         _time.PropertyChanged += (_, e) =>
@@ -568,7 +585,7 @@ internal sealed class StaticEditor(DynamicFormView o, DynamicFormModel m, FieldD
     {
         Text = note ?? (Field.Help is { } h ? L(h) : L(Field.Label)),
         FontSize = note is null ? 14 : 12,
-        TextColor = note is null ? null : Colors.Gray,
+        TextColor = note is null ? null : Services.ThemeColors.Get("TextSecondary"),
     };
 
     protected override void ShowValue(JsonNode? value) { }
@@ -624,17 +641,17 @@ internal sealed class GroupEditor(DynamicFormView o, DynamicFormModel m, FieldDe
             var remove = new Button
             {
                 Text = "Remove row", FontSize = 12, Padding = new Thickness(10, 2), HorizontalOptions = LayoutOptions.Start,
-                BackgroundColor = Colors.Transparent, TextColor = Color.FromArgb("#B91C1C"),
+                BackgroundColor = Colors.Transparent, TextColor = Services.ThemeColors.Get("Danger"),
             };
             remove.Clicked += (_, _) => Model.RemoveRow(Field.Key, row);
             _rows.Children.Add(new Border
             {
                 Padding = new Thickness(12, 8),
                 StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 8 },
-                Stroke = Colors.LightGray,
+                Stroke = Services.ThemeColors.Get("Outline"),
                 Content = new VerticalStackLayout
                 {
-                    Children = { new Label { Text = $"Row {row + 1}", FontSize = 12, TextColor = Colors.Gray }, grid, remove },
+                    Children = { new Label { Text = $"Row {row + 1}", FontSize = 12, TextColor = Services.ThemeColors.Get("TextSecondary") }, grid, remove },
                 },
             });
         }

@@ -1,4 +1,4 @@
-﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<?xml version = "1.0" encoding = "UTF-8" ?>
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:Clinic.App"
@@ -15,64 +15,7 @@
             <toolkit:IsNotNullConverter x:Key="IsNotNullConverter" />
             <toolkit:IsNullConverter x:Key="IsNullConverter" />
 
-            <Color x:Key="Danger">#B91C1C</Color>
-            <Color x:Key="DangerDark">#FCA5A5</Color>
-            <Color x:Key="Success">#15803D</Color>
-            <Color x:Key="Warning">#B45309</Color>
-
-            <!-- Card surface used by lists and forms -->
-            <Style x:Key="Card" TargetType="Border">
-                <Setter Property="StrokeShape" Value="RoundRectangle 10" />
-                <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
-                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}" />
-                <Setter Property="Padding" Value="16" />
-            </Style>
-
-            <Style x:Key="PageTitle" TargetType="Label">
-                <Setter Property="FontSize" Value="24" />
-                <Setter Property="FontFamily" Value="OpenSansSemibold" />
-                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}" />
-            </Style>
-
-            <Style x:Key="FieldLabel" TargetType="Label">
-                <Setter Property="FontSize" Value="13" />
-                <Setter Property="FontFamily" Value="OpenSansSemibold" />
-                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
-                <Setter Property="Margin" Value="0,8,0,0" />
-            </Style>
-
-            <Style x:Key="Muted" TargetType="Label">
-                <Setter Property="FontSize" Value="13" />
-                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
-            </Style>
-
-            <Style x:Key="ErrorLabel" TargetType="Label">
-                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
-                <Setter Property="FontSize" Value="14" />
-            </Style>
-
-            <Style x:Key="SecondaryButton" TargetType="Button">
-                <Setter Property="BackgroundColor" Value="Transparent" />
-                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                <Setter Property="BorderWidth" Value="1" />
-            </Style>
-
-            <Style x:Key="DangerButton" TargetType="Button">
-                <Setter Property="BackgroundColor" Value="Transparent" />
-                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
-                <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
-                <Setter Property="BorderWidth" Value="1" />
-            </Style>
-
-            <!-- Pill badge (status, role) -->
-            <Style x:Key="Badge" TargetType="Border">
-                <Setter Property="StrokeShape" Value="RoundRectangle 10" />
-                <Setter Property="StrokeThickness" Value="0" />
-                <Setter Property="Padding" Value="8,2" />
-                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource Tertiary}}" />
-                <Setter Property="VerticalOptions" Value="Center" />
-            </Style>
+            <!-- Theme: Resources/Styles/Colors.xaml (tokens) and Styles.xaml (all styles). -->
         </ResourceDictionary>
     </Application.Resources>
 </Application>

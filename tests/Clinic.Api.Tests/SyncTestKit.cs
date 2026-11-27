@@ -56,6 +56,21 @@ public sealed class SwitchableTransport(ISyncTransport inner) : ISyncTransport
         return inner.LeaseNumbersAsync(kind, size, ct);
     }
 
+    public Task ReportResolutionsAsync(IReadOnlyList<ConflictResolutionReport> reports, CancellationToken ct)
+    {
+        ThrowIfOffline();
+        return inner.ReportResolutionsAsync(reports, ct);
+    }
+
+    public int SnapshotCalls { get; private set; }
+
+    public Task<Stream?> SnapshotAsync(CancellationToken ct)
+    {
+        SnapshotCalls++;
+        ThrowIfOffline();
+        return inner.SnapshotAsync(ct);
+    }
+
     private void ThrowIfOffline()
     {
         if (Offline) throw new SyncTransportException(SyncFailureKind.Transient, "Offline (simulated).");

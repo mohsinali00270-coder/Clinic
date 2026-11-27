@@ -36,5 +36,11 @@
 	</array>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Dictate notes into the form instead of typing.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Turn your dictation into text on this device.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Photograph documents to attach them or read their text.</string>
 </dict>
 </plist>

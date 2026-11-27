@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.CareSetupPage"
+             x:DataType="vm:CareSetupViewModel"
+             Title="Care setup">
+    <RefreshView Command="{Binding LoadCommand}" IsRefreshing="{Binding IsBusy}">
+        <ScrollView>
+            <VerticalStackLayout Padding="20,12" Spacing="10" MaximumWidthRequest="900">
+                <Label Text="Case types, procedures and beds. Changes reach devices on their next sync. Case and procedure forms are designed under Forms (entity Case / Procedure, context = the code)."
+                       Style="{StaticResource Muted}" />
+                <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Text="Case types" Style="{StaticResource FieldLabel}" FontSize="15" VerticalOptions="Center" />
+                    <Button Grid.Column="1" Text="Add" Command="{Binding AddCaseTypeCommand}" Style="{StaticResource SecondaryButton}" />
+                </Grid>
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding CaseTypes}" Spacing="4">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CareRow">
+                            <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CareSetupViewModel}}, Path=ToggleCaseTypeCommand}" CommandParameter="{Binding .}" />
+                                </VerticalStackLayout.GestureRecognizers>
+                                <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <Label Text="Procedures (tap to change the fee)" Style="{StaticResource FieldLabel}" FontSize="15" Margin="0,8,0,0" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Procedures}" Spacing="4">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CareRow">
+                            <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CareSetupViewModel}}, Path=EditProcedureCommand}" CommandParameter="{Binding .}" />
+                                </VerticalStackLayout.GestureRecognizers>
+                                <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <Label Text="Lab tests (tap to change the fee; result forms are under Forms → Lab result, context = test code)" Style="{StaticResource FieldLabel}" FontSize="15" Margin="0,8,0,0" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding LabTests}" Spacing="4">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CareRow">
+                            <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CareSetupViewModel}}, Path=EditLabTestCommand}" CommandParameter="{Binding .}" />
+                                </VerticalStackLayout.GestureRecognizers>
+                                <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                    <Label Text="Services and fees" Style="{StaticResource FieldLabel}" FontSize="15" VerticalOptions="Center" />
+                    <Button Grid.Column="1" Text="Add" Command="{Binding AddServiceCommand}" Style="{StaticResource SecondaryButton}" />
+                </Grid>
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Services}" Spacing="4">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CareRow">
+                            <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CareSetupViewModel}}, Path=EditServiceCommand}" CommandParameter="{Binding .}" />
+                                </VerticalStackLayout.GestureRecognizers>
+                                <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                    <Label Text="Beds, rooms and chairs" Style="{StaticResource FieldLabel}" FontSize="15" VerticalOptions="Center" />
+                    <Button Grid.Column="1" Text="Add" Command="{Binding AddBedCommand}" Style="{StaticResource SecondaryButton}" />
+                </Grid>
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Beds}" Spacing="4">
+                    <BindableLayout.EmptyView><Label Text="No beds yet." Style="{StaticResource Muted}" /></BindableLayout.EmptyView>
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CareRow">
+                            <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CareSetupViewModel}}, Path=ToggleBedCommand}" CommandParameter="{Binding .}" />
+                                </VerticalStackLayout.GestureRecognizers>
+                                <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

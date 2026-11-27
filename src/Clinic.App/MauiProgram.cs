@@ -3,6 +3,7 @@ using Clinic.App.ViewModels;
 using Clinic.App.Views;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.LifecycleEvents;
 
 namespace Clinic.App;
 
@@ -14,6 +15,34 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
+            .ConfigureLifecycleEvents(events =>
+            {
+                // FR-SEC-05: clicks and key presses count as activity for the auto-lock (taps on Android: MainActivity).
+#if WINDOWS
+                events.AddWindows(w => w.OnWindowCreated(window =>
+                {
+                    void Hook()
+                    {
+                        if (window.Content is not Microsoft.UI.Xaml.UIElement root) return;
+                        root.AddHandler(Microsoft.UI.Xaml.UIElement.PointerPressedEvent,
+                            new Microsoft.UI.Xaml.Input.PointerEventHandler((_, _) => Touch()), handledEventsToo: true);
+                        root.AddHandler(Microsoft.UI.Xaml.UIElement.KeyDownEvent,
+                            new Microsoft.UI.Xaml.Input.KeyEventHandler((_, _) => Touch()), handledEventsToo: true);
+                    }
+                    var hooked = false;
+                    window.Activated += (_, _) => { if (!hooked) { hooked = true; Hook(); } };
+                }));
+#elif IOS || MACCATALYST
+                events.AddiOS(ios => ios.OnActivated(app =>
+                {
+                    foreach (var w in app.ConnectedScenes.OfType<UIKit.UIWindowScene>().SelectMany(s => s.Windows))
+                    {
+                        if (w.GestureRecognizers?.Any(g => g.Name == "clinic-activity") == true) continue;
+                        w.AddGestureRecognizer(new UIKit.UITapGestureRecognizer(Touch) { CancelsTouchesInView = false, Name = "clinic-activity" });
+                    }
+                }));
+#endif
+            })
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -32,6 +61,14 @@ public static class MauiProgram
         s.AddSingleton<SyncCoordinator>();
         s.AddSingleton<OfflinePinService>();
         s.AddSingleton<FormDesignerSession>();
+        s.AddSingleton<AppLock>();
+        s.AddSingleton<ClientErrorReporter>();
+
+        // On-device assist (§13.3): dictation, read-aloud, OCR — all offline, platform engines.
+        s.AddSingleton<DictationService>();
+        s.AddSingleton<ReadAloudService>();
+        s.AddSingleton<ITextRecognizer, PlatformTextRecognizer>();
+        s.AddSingleton<DocumentScanner>();
 
         // Shell
         s.AddSingleton<AppShell>();
@@ -64,11 +101,36 @@ public static class MauiProgram
         s.AddTransient<DoctorEditPage>().AddTransient<DoctorEditViewModel>();
         s.AddTransient<SchedulingSetupPage>().AddTransient<SchedulingSetupViewModel>();
         s.AddTransient<EncounterPage>().AddTransient<EncounterViewModel>();
+        s.AddTransient<CasePage>().AddTransient<CaseViewModel>();
+        s.AddTransient<ReferralPage>().AddTransient<ReferralViewModel>();
+        s.AddTransient<ProcedurePage>().AddTransient<ProcedureViewModel>();
+        s.AddTransient<AdmissionPage>().AddTransient<AdmissionViewModel>();
+        s.AddTransient<DayCarePage>().AddTransient<DayCareViewModel>();
+        s.AddTransient<FollowUpsPage>().AddTransient<FollowUpsViewModel>();
+        s.AddTransient<CareSetupPage>().AddTransient<CareSetupViewModel>();
+        s.AddTransient<LabWorkPage>().AddTransient<LabWorkViewModel>();
+        s.AddTransient<LabResultPage>().AddTransient<LabResultViewModel>();
+        s.AddTransient<PatientBillingPage>().AddTransient<PatientBillingViewModel>();
+        s.AddTransient<InvoicePage>().AddTransient<InvoiceViewModel>();
+        s.AddTransient<CashClosingPage>().AddTransient<CashClosingViewModel>();
+        s.AddTransient<ApprovalsPage>().AddTransient<ApprovalsViewModel>();
+        s.AddTransient<ExpensesPage>().AddTransient<ExpensesViewModel>();
+        s.AddTransient<ComplaintsPage>().AddTransient<ComplaintsViewModel>();
+        s.AddTransient<StockPage>().AddTransient<StockViewModel>();
+        s.AddTransient<DispensePage>().AddTransient<DispenseViewModel>();
+        s.AddTransient<ReportsPage>().AddTransient<ReportsViewModel>();
+        s.AddTransient<ConflictPage>().AddTransient<ConflictViewModel>();
+        s.AddTransient<AuditPage>().AddTransient<AuditViewModel>();
+        s.AddTransient<DuplicatesPage>().AddTransient<DuplicatesViewModel>();
 
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
 
-        return builder.Build();
+        var app = builder.Build();
+        _ = app.Services.GetRequiredService<DictationService>(); // makes the dictation button available in DynamicFormView
+        return app;
     }
+
+    private static void Touch() => IPlatformApplication.Current?.Services.GetService<AppLock>()?.Touch();
 }

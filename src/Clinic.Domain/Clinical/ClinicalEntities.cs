@@ -26,6 +26,9 @@ public class Patient : SyncEntity, IHasDynamicData
     public Guid? FormVersionId { get; set; }
     public string? DynamicData { get; set; }
 
+    /// <summary>FR-SYN-32: set (with IsDeleted) when this record was merged into another patient.</summary>
+    public Guid? MergedIntoId { get; set; }
+
     public override Guid? GetSyncBranchId() => BranchId;
 
     public IReadOnlyDictionary<string, object?> GetFormVariables() => PatientVariables(Gender, DateOfBirth);

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Clinic.App.ViewModels"
+             x:Class="Clinic.App.Views.FollowUpsPage"
+             x:DataType="vm:FollowUpsViewModel"
+             Title="Follow-ups">
+    <RefreshView Command="{Binding LoadCommand}" IsRefreshing="{Binding IsBusy}">
+        <ScrollView>
+            <VerticalStackLayout Padding="20,12" Spacing="10" MaximumWidthRequest="900">
+                <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorLabel}" />
+
+                <!-- FR-REF-01 / FR-DOC-06: referrals to me -->
+                <VerticalStackLayout IsVisible="{Binding IsDoctor}" Spacing="4">
+                    <Label Text="Referrals to me" Style="{StaticResource FieldLabel}" FontSize="15" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Referrals}" Spacing="4">
+                        <BindableLayout.EmptyView><Label Text="No open referrals." Style="{StaticResource Muted}" /></BindableLayout.EmptyView>
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CareRow">
+                                <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                    <VerticalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FollowUpsViewModel}}, Path=OpenReferralCommand}" CommandParameter="{Binding .}" />
+                                    </VerticalStackLayout.GestureRecognizers>
+                                    <Label Text="{Binding Title}" TextColor="{Binding TitleColor}" FontFamily="OpenSansSemibold" />
+                                    <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <Label Text="My open cases" Style="{StaticResource FieldLabel}" FontSize="15" Margin="0,8,0,0" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding MyCases}" Spacing="4">
+                        <BindableLayout.EmptyView><Label Text="No open cases." Style="{StaticResource Muted}" /></BindableLayout.EmptyView>
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CareRow">
+                                <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                    <VerticalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FollowUpsViewModel}}, Path=OpenCaseCommand}" CommandParameter="{Binding .}" />
+                                    </VerticalStackLayout.GestureRecognizers>
+                                    <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                    <Label Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+
+                <!-- FR-REF-04: due and overdue follow-ups -->
+                <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,8,0,0">
+                    <Label Text="Due in the next 7 days and overdue" Style="{StaticResource FieldLabel}" FontSize="15" VerticalOptions="Center" />
+                    <Label Grid.Column="1" Text="Only mine" VerticalOptions="Center" IsVisible="{Binding IsDoctor}" />
+                    <Switch Grid.Column="2" IsToggled="{Binding OnlyMine}" IsVisible="{Binding IsDoctor}" />
+                </Grid>
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding FollowUps}" Spacing="4">
+                    <BindableLayout.EmptyView><Label Text="Nobody is due for follow-up." Style="{StaticResource Muted}" /></BindableLayout.EmptyView>
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CareRow">
+                            <VerticalStackLayout Padding="10,6" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FollowUpsViewModel}}, Path=ContactCommand}" CommandParameter="{Binding .}" />
+                                </VerticalStackLayout.GestureRecognizers>
+                                <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding Detail}" TextColor="{Binding TitleColor}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

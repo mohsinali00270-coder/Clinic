@@ -44,6 +44,14 @@ public static class PatientSearchIndex
         }
     }
 
+    /// <summary>Adds rows for patients known to be new to the index (bulk loads: no delete or re-read per patient).</summary>
+    public static void IndexNew(SQLiteConnection c, IEnumerable<LocalPatient> patients)
+    {
+        if (!Exists(c)) return;
+        foreach (var p in patients)
+            if (!p.IsDeleted) c.Execute($"INSERT INTO {Table} (PatientId, Content) VALUES (?, ?)", p.Id.ToString(), ContentOf(p));
+    }
+
     public static string ContentOf(LocalPatient p)
     {
         var sb = new StringBuilder();
